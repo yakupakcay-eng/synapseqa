@@ -1,12 +1,17 @@
 {
-  "name": "claude_startup",
-  "private": true,
-  "version": "0.0.0",
+  "name": "synapseqa",
+  "version": "1.2.0",
+  "description": "Autonomous Web QA & Visual Regression Engine powered by Anthropic Claude 3.7 Computer Use",
+  "private": false,
   "type": "module",
+  "bin": {
+    "synapseqa": "./cli/bin/synapseqa.js"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
+    "test:cli": "node cli/bin/synapseqa.js --version",
     "preview": "vite preview"
   },
   "dependencies": {
