@@ -10,25 +10,55 @@ import {
   Shield,
   Zap,
   GitPullRequest,
-  ChevronRight,
   Sparkles,
   Layers,
   Code2,
-  BarChart3,
   Check,
-  Send,
-  ExternalLink,
   RefreshCw,
   Sliders,
   DollarSign,
-  Lock,
   MousePointer,
   HelpCircle,
   Copy
 } from 'lucide-react';
 
+const scenarios = {
+  checkout: {
+    title: 'E-Commerce Checkout & Discount Flow',
+    description: 'Navigate to cart, apply coupon code "SPRING25", ensure shipping recalculates, and verify edge case with expired card.',
+    steps: [
+      { title: 'Booting Sandboxed Chromium', detail: 'Allocated clean browser instance (Viewport 1440x900). Claude Computer Use initialized.', status: 'done', latency: '0.4s' },
+      { title: 'Visual Coordinate Mapping', detail: 'Claude Vision inspected screen: mapped "Add to Cart" button at (x: 842, y: 310).', status: 'done', latency: '0.9s' },
+      { title: 'Autonomous Action: Mouse Move & Click', detail: 'Moved cursor to cart button, dispatched click event, cart drawer expanded.', status: 'done', latency: '0.3s' },
+      { title: 'Input Text & Coupon Validation', detail: 'Entered "SPRING25" into coupon field. Claude detected layout shift: Total updated from $120.00 to $90.00 (-25%).', status: 'done', latency: '1.1s' },
+      { title: 'Negative Testing: Expired Card', detail: 'Tested credit card year 2023. Verified proper inline warning: "Card expired" displayed with proper aria-live attribute.', status: 'done', latency: '0.8s' },
+      { title: 'Test Verdict: PASSED', detail: 'All 5 assertions met. Full video replay and trace telemetry logged to CI dashboard.', status: 'success', latency: '3.5s total' }
+    ]
+  },
+  auth: {
+    title: 'SaaS Workspace Onboarding & RBAC',
+    description: 'Verify new user invite, team permissions, role-based access control, and dark mode preference persistence.',
+    steps: [
+      { title: 'Session Isolation & Multi-Context', detail: 'Spawned dual browser sessions: Admin (Owner) and Invitee (Read-Only).', status: 'done', latency: '0.6s' },
+      { title: 'Admin Invitation Dispatch', detail: 'Admin typed invite email "colleague@acme.inc", role assigned: "Editor".', status: 'done', latency: '0.7s' },
+      { title: 'Magic Link Token Extraction', detail: 'Claude fetched webhook token, opened magic link in second browser.', status: 'done', latency: '1.0s' },
+      { title: 'Visual Regression & RBAC Check', detail: 'Verified that "Billing" tab is hidden for Editor role. Claude Vision confirmed zero forbidden UI buttons leaked.', status: 'done', latency: '0.9s' },
+      { title: 'Test Verdict: PASSED', detail: 'RBAC boundary preserved. Zero security leaks detected.', status: 'success', latency: '3.2s total' }
+    ]
+  },
+  bugfix: {
+    title: 'Autonomous Bug Discovery & Auto-PR',
+    description: 'Find broken checkout modal on mobile viewport (390x844), detect overflowing button, and generate code fix.',
+    steps: [
+      { title: 'Mobile Viewport Emulation', detail: 'Resized viewport to iPhone 15 Pro (390x844, DPR 3).', status: 'done', latency: '0.3s' },
+      { title: 'Visual Anomaly Flagged', detail: 'Claude Vision detected: "Proceed to Payment" button overlaps with fixed bottom navigation bar.', status: 'warning', latency: '0.8s' },
+      { title: 'DOM & CSS Root-Cause Analysis', detail: 'Identified culprit: `.checkout-footer` lacks `pb-safe` (safe-area-inset-bottom padding).', status: 'done', latency: '1.2s' },
+      { title: 'Autonomous PR Generated', detail: 'Created Git Branch `fix/checkout-mobile-overflow` with 2-line Tailwind fix. Opened PR #142 with before/after screenshots.', status: 'success', latency: '2.8s total' }
+    ]
+  }
+};
+
 export default function App() {
-  const [activeTab, setActiveTab] = useState('demo');
   const [selectedScenario, setSelectedScenario] = useState('checkout');
   const [isRunningTest, setIsRunningTest] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(-1);
@@ -52,42 +82,6 @@ export default function App() {
   };
 
   const { hoursSavedMonthly, dollarsSavedMonthly } = calculateSavings();
-
-  const scenarios = {
-    checkout: {
-      title: 'E-Commerce Checkout & Discount Flow',
-      description: 'Navigate to cart, apply coupon code "SPRING25", ensure shipping recalculates, and verify edge case with expired card.',
-      steps: [
-        { title: 'Booting Sandboxed Chromium', detail: 'Allocated clean browser instance (Viewport 1440x900). Claude Computer Use initialized.', status: 'done', latency: '0.4s' },
-        { title: 'Visual Coordinate Mapping', detail: 'Claude Vision inspected screen: mapped "Add to Cart" button at (x: 842, y: 310).', status: 'done', latency: '0.9s' },
-        { title: 'Autonomous Action: Mouse Move & Click', detail: 'Moved cursor to cart button, dispatched click event, cart drawer expanded.', status: 'done', latency: '0.3s' },
-        { title: 'Input Text & Coupon Validation', detail: 'Entered "SPRING25" into coupon field. Claude detected layout shift: Total updated from $120.00 to $90.00 (-25%).', status: 'done', latency: '1.1s' },
-        { title: 'Negative Testing: Expired Card', detail: 'Tested credit card year 2023. Verified proper inline warning: "Card expired" displayed with proper aria-live attribute.', status: 'done', latency: '0.8s' },
-        { title: 'Test Verdict: PASSED', detail: 'All 5 assertions met. Full video replay and trace telemetry logged to CI dashboard.', status: 'success', latency: '3.5s total' }
-      ]
-    },
-    auth: {
-      title: 'SaaS Workspace Onboarding & RBAC',
-      description: 'Verify new user invite, team permissions, role-based access control, and dark mode preference persistence.',
-      steps: [
-        { title: 'Session Isolation & Multi-Context', detail: 'Spawned dual browser sessions: Admin (Owner) and Invitee (Read-Only).', status: 'done', latency: '0.6s' },
-        { title: 'Admin Invitation Dispatch', detail: 'Admin typed invite email "colleague@acme.inc", role assigned: "Editor".', status: 'done', latency: '0.7s' },
-        { title: 'Magic Link Token Extraction', detail: 'Claude fetched webhook token, opened magic link in second browser.', status: 'done', latency: '1.0s' },
-        { title: 'Visual Regression & RBAC Check', detail: 'Verified that "Billing" tab is hidden for Editor role. Claude Vision confirmed zero forbidden UI buttons leaked.', status: 'done', latency: '0.9s' },
-        { title: 'Test Verdict: PASSED', detail: 'RBAC boundary preserved. Zero security leaks detected.', status: 'success', latency: '3.2s total' }
-      ]
-    },
-    bugfix: {
-      title: 'Autonomous Bug Discovery & Auto-PR',
-      description: 'Find broken checkout modal on mobile viewport (390x844), detect overflowing button, and generate code fix.',
-      steps: [
-        { title: 'Mobile Viewport Emulation', detail: 'Resized viewport to iPhone 15 Pro (390x844, DPR 3).', status: 'done', latency: '0.3s' },
-        { title: 'Visual Anomaly Flagged', detail: 'Claude Vision detected: "Proceed to Payment" button overlaps with fixed bottom navigation bar.', status: 'warning', latency: '0.8s' },
-        { title: 'DOM & CSS Root-Cause Analysis', detail: 'Identified culprit: `.checkout-footer` lacks `pb-safe` (safe-area-inset-bottom padding).', status: 'done', latency: '1.2s' },
-        { title: 'Autonomous PR Generated', detail: 'Created Git Branch `fix/checkout-mobile-overflow` with 2-line Tailwind fix. Opened PR #142 with before/after screenshots.', status: 'success', latency: '2.8s total' }
-      ]
-    }
-  };
 
   const runSimulation = () => {
     setIsRunningTest(true);
@@ -488,7 +482,6 @@ export default function App() {
                   {scenarios[selectedScenario].steps.map((step, idx) => {
                     const isPassed = currentStepIndex > idx || (!isRunningTest && currentStepIndex === -1);
                     const isCurrent = isRunningTest && currentStepIndex === idx;
-                    const isPending = isRunningTest && currentStepIndex < idx;
 
                     return (
                       <div
@@ -880,7 +873,7 @@ export default function App() {
               <Eye className="w-3.5 h-3.5" />
             </div>
             <span className="font-semibold text-zinc-300">SynapseQA Inc.</span>
-            <span>&copy; {new Date().getFullYear()} All rights reserved.</span>
+            <span>&copy; 2026 All rights reserved.</span>
           </div>
           <div className="flex gap-6 text-zinc-400">
             <a href="#live-simulator" className="hover:text-white transition-colors">Product</a>
