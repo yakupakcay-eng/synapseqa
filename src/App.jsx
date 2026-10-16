@@ -8,7 +8,6 @@ import {
   Cpu,
   Eye,
   Shield,
-  Zap,
   GitPullRequest,
   Sparkles,
   Layers,
@@ -62,8 +61,11 @@ export default function App() {
   const [selectedScenario, setSelectedScenario] = useState('checkout');
   const [isRunningTest, setIsRunningTest] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(-1);
+  const [targetUrl, setTargetUrl] = useState('https://stage.acmestore.io/app');
+  const [telemetryTab, setTelemetryTab] = useState('stream');
   const [customPrompt, setCustomPrompt] = useState('Test user login with Google OAuth, navigate to settings, toggle 2FA, and assert confirmation modal appears.');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDocsOpen, setIsDocsOpen] = useState(false);
   const [emailInput, setEmailInput] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
@@ -124,7 +126,7 @@ export default function App() {
         <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-orange-500/20 border border-orange-500/30 text-[11px] text-orange-300 font-semibold tracking-wide uppercase">
           <Sparkles className="w-3 h-3 text-orange-400" /> Anthropic Claude Ecosystem
         </span>
-        <span>Architected natively for <strong>Claude 3.7 Sonnet Computer Use API</strong> & Multimodal Autonomous Testing.</span>
+        <span>Architected natively for <strong>Claude 3.7 Sonnet Computer Use API</strong>, Extended Thinking &amp; Ephemeral Prompt Caching.</span>
         <button 
           onClick={() => setIsModalOpen(true)}
           className="ml-2 underline hover:text-white transition-colors cursor-pointer"
@@ -143,28 +145,30 @@ export default function App() {
             <div>
               <span className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
                 Synapse<span className="text-orange-500">QA</span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700/60 font-mono">v1.2</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700/60 font-mono">v1.3</span>
               </span>
             </div>
           </div>
 
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
-            <a href="#how-it-works" className="hover:text-zinc-100 transition-colors">How It Works</a>
-            <a href="#live-simulator" className="hover:text-zinc-100 transition-colors">Live Agent Demo</a>
+          <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-zinc-400">
+            <a href="#live-simulator" className="hover:text-zinc-100 transition-colors">Live Sandbox</a>
             <a href="#architecture" className="hover:text-zinc-100 transition-colors">Claude Engine</a>
             <a href="#roi-calculator" className="hover:text-zinc-100 transition-colors">ROI Calculator</a>
             <a href="#pricing" className="hover:text-zinc-100 transition-colors">Pricing</a>
+            <button
+              onClick={() => setIsDocsOpen(true)}
+              className="hover:text-orange-400 transition-colors flex items-center gap-1 cursor-pointer"
+            >
+              <Code2 className="w-3.5 h-3.5 text-orange-400" /> Docs &amp; SDK
+            </button>
           </nav>
 
           <div className="flex items-center gap-3">
             <button
-              onClick={() => {
-                const el = document.getElementById('live-simulator');
-                el?.scrollIntoView({ behavior: 'smooth' });
-              }}
+              onClick={() => setIsDocsOpen(true)}
               className="text-xs sm:text-sm font-medium text-zinc-300 hover:text-white px-3 py-1.5 rounded-lg border border-zinc-700/60 hover:bg-zinc-800/50 transition-all cursor-pointer"
             >
-              Live Demo
+              API Docs
             </button>
             <button
               onClick={() => setIsModalOpen(true)}
@@ -321,12 +325,20 @@ export default function App() {
             {/* Left: Virtual Screen Viewport */}
             <div className="lg:col-span-7 p-6 border-b lg:border-b-0 lg:border-r border-zinc-800 bg-zinc-950 flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between text-xs text-zinc-400 mb-3">
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-green-500" />
-                    Target: <code className="text-zinc-300">https://stage.acmestore.io/app</code>
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-400 mb-3">
+                  <div className="flex items-center gap-2 flex-1 min-w-[240px]">
+                    <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
+                    <span className="text-zinc-500 shrink-0">Target URL:</span>
+                    <input
+                      type="text"
+                      value={targetUrl}
+                      onChange={(e) => setTargetUrl(e.target.value)}
+                      className="bg-zinc-900 border border-zinc-800 rounded px-2 py-0.5 font-mono text-xs text-zinc-200 w-full max-w-xs focus:outline-none focus:border-orange-500"
+                    />
+                  </div>
+                  <span className="font-mono text-[11px] text-orange-400/90 bg-orange-950/30 border border-orange-500/20 px-2 py-0.5 rounded">
+                    claude-3-7-sonnet-20250219 (computer_20250124)
                   </span>
-                  <span className="font-mono text-[11px] text-zinc-500">Claude Model: claude-3-7-sonnet-20250219</span>
                 </div>
 
                 {/* Simulated Web Application Display */}
@@ -471,57 +483,98 @@ export default function App() {
             <div className="lg:col-span-5 p-6 bg-zinc-900/40 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between pb-3 border-b border-zinc-800 mb-4">
-                  <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <Zap className="w-3.5 h-3.5 text-orange-400" /> Execution Stream
-                  </span>
-                  <span className="text-[11px] font-mono text-zinc-500">Latency: 42ms</span>
+                  <div className="flex items-center gap-1 bg-zinc-950 p-1 rounded-lg border border-zinc-800 text-[11px]">
+                    <button
+                      onClick={() => setTelemetryTab('stream')}
+                      className={`px-2.5 py-1 rounded transition-colors cursor-pointer ${telemetryTab === 'stream' ? 'bg-orange-500/20 text-orange-300 font-semibold border border-orange-500/30' : 'text-zinc-400 hover:text-zinc-200'}`}
+                    >
+                      Execution Stream
+                    </button>
+                    <button
+                      onClick={() => setTelemetryTab('api')}
+                      className={`px-2.5 py-1 rounded transition-colors cursor-pointer ${telemetryTab === 'api' ? 'bg-orange-500/20 text-orange-300 font-semibold border border-orange-500/30' : 'text-zinc-400 hover:text-zinc-200'}`}
+                    >
+                      Anthropic API &amp; Cache Trace
+                    </button>
+                  </div>
+                  <span className="text-[11px] font-mono text-emerald-400">Cache Hit: 94.2%</span>
                 </div>
 
-                {/* Steps List */}
-                <div className="space-y-3">
-                  {scenarios[selectedScenario].steps.map((step, idx) => {
-                    const isPassed = currentStepIndex > idx || (!isRunningTest && currentStepIndex === -1);
-                    const isCurrent = isRunningTest && currentStepIndex === idx;
+                {telemetryTab === 'stream' ? (
+                  <div className="space-y-3">
+                    {scenarios[selectedScenario].steps.map((step, idx) => {
+                      const isPassed = currentStepIndex > idx || (!isRunningTest && currentStepIndex === -1);
+                      const isCurrent = isRunningTest && currentStepIndex === idx;
 
-                    return (
-                      <div
-                        key={idx}
-                        className={`p-2.5 rounded-lg border transition-all text-xs ${
-                          isCurrent
-                            ? 'bg-orange-950/20 border-orange-500/50 shadow-sm'
-                            : isPassed
-                            ? 'bg-zinc-950/60 border-zinc-800/80'
-                            : 'bg-zinc-950/20 border-zinc-850 opacity-50'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            {isPassed ? (
-                              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                            ) : isCurrent ? (
-                              <RefreshCw className="w-4 h-4 text-orange-400 animate-spin shrink-0" />
-                            ) : (
-                              <div className="w-4 h-4 rounded-full border border-zinc-700 shrink-0" />
-                            )}
-                            <span className={`font-semibold ${isCurrent ? 'text-orange-300' : isPassed ? 'text-zinc-200' : 'text-zinc-500'}`}>
-                              {step.title}
-                            </span>
+                      return (
+                        <div
+                          key={idx}
+                          className={`p-2.5 rounded-lg border transition-all text-xs ${
+                            isCurrent
+                              ? 'bg-orange-950/20 border-orange-500/50 shadow-sm'
+                              : isPassed
+                              ? 'bg-zinc-950/60 border-zinc-800/80'
+                              : 'bg-zinc-950/20 border-zinc-850 opacity-50'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              {isPassed ? (
+                                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                              ) : isCurrent ? (
+                                <RefreshCw className="w-4 h-4 text-orange-400 animate-spin shrink-0" />
+                              ) : (
+                                <div className="w-4 h-4 rounded-full border border-zinc-700 shrink-0" />
+                              )}
+                              <span className={`font-semibold ${isCurrent ? 'text-orange-300' : isPassed ? 'text-zinc-200' : 'text-zinc-500'}`}>
+                                {step.title}
+                              </span>
+                            </div>
+                            <span className="font-mono text-[10px] text-zinc-500">{step.latency}</span>
                           </div>
-                          <span className="font-mono text-[10px] text-zinc-500">{step.latency}</span>
+                          <p className="mt-1 text-[11px] text-zinc-400 pl-6 leading-relaxed">
+                            {step.detail}
+                          </p>
                         </div>
-                        <p className="mt-1 text-[11px] text-zinc-400 pl-6 leading-relaxed">
-                          {step.detail}
-                        </p>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="space-y-3 font-mono text-[11px]">
+                    <div className="p-3 rounded-lg bg-black/70 border border-zinc-800 text-zinc-300 overflow-x-auto">
+                      <div className="text-orange-400 font-semibold mb-1">// Anthropic Beta Messages Request</div>
+                      <pre className="text-[10px] leading-relaxed text-zinc-300">{`POST https://api.anthropic.com/v1/messages
+anthropic-beta: computer-use-2025-01-24, prompt-caching-2024-07-31
+
+{
+  "model": "claude-3-7-sonnet-20250219",
+  "thinking": { "type": "enabled", "budget_tokens": 4096 },
+  "tools": [{
+    "type": "computer_20250124",
+    "name": "computer",
+    "display_width_px": 1440,
+    "display_height_px": 900,
+    "cache_control": { "type": "ephemeral" }
+  }]
+}`}</pre>
+                    </div>
+                    <div className="p-3 rounded-lg bg-emerald-950/20 border border-emerald-500/30 text-emerald-200">
+                      <div className="font-semibold text-emerald-400 mb-1">// Ephemeral Prompt Cache Telemetry</div>
+                      <div className="grid grid-cols-2 gap-2 text-[10px]">
+                        <div>cache_read_input_tokens: <strong className="text-white">48,200</strong></div>
+                        <div>uncached_input_tokens: <strong className="text-white">1,420</strong></div>
+                        <div>thinking_tokens_used: <strong className="text-white">640</strong></div>
+                        <div>latency_reduction: <strong className="text-emerald-400">-79.4%</strong></div>
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Bottom CI Integration Status */}
               <div className="mt-6 pt-3 border-t border-zinc-800 text-[11px] text-zinc-400 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
-                  <GitPullRequest className="w-3.5 h-3.5 text-zinc-300" /> GitHub Actions & Vercel Webhook Ready
+                  <GitPullRequest className="w-3.5 h-3.5 text-zinc-300" /> GitHub Actions &amp; Vercel Webhook Ready
                 </span>
                 <span className="text-emerald-400 font-mono font-medium">Synced</span>
               </div>
@@ -868,21 +921,117 @@ export default function App() {
       {/* Footer */}
       <footer className="border-t border-zinc-800 bg-black/60 py-12 px-4 sm:px-6 lg:px-8 text-center text-xs text-zinc-500">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <div className="w-6 h-6 rounded-lg bg-orange-500 flex items-center justify-center text-white">
               <Eye className="w-3.5 h-3.5" />
             </div>
             <span className="font-semibold text-zinc-300">SynapseQA Inc.</span>
             <span>&copy; 2026 All rights reserved.</span>
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-[11px] font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              All Agent Clusters Operational (99.98%)
+            </span>
           </div>
-          <div className="flex gap-6 text-zinc-400">
+          <div className="flex flex-wrap justify-center gap-6 text-zinc-400">
             <a href="#live-simulator" className="hover:text-white transition-colors">Product</a>
             <a href="#architecture" className="hover:text-white transition-colors">Claude Engine</a>
-            <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
+            <button onClick={() => setIsDocsOpen(true)} className="hover:text-white transition-colors cursor-pointer">Docs &amp; SDK</button>
+            <a href="https://github.com/yakupakcay-eng/synapseqa" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">GitHub</a>
             <button onClick={() => setIsModalOpen(true)} className="hover:text-white transition-colors cursor-pointer">Request Access</button>
           </div>
         </div>
       </footer>
+
+      {/* Developer Docs & SDK Reference Modal */}
+      {isDocsOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="bg-zinc-900 border border-zinc-750 rounded-2xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[88vh] overflow-y-auto">
+            <button
+              onClick={() => setIsDocsOpen(false)}
+              className="absolute top-4 right-4 text-zinc-400 hover:text-white text-xl font-bold cursor-pointer"
+            >
+              &times;
+            </button>
+
+            <div className="flex items-center gap-2 text-orange-400 text-xs font-semibold uppercase tracking-wider mb-2">
+              <Code2 className="w-4 h-4" /> Developer Documentation &amp; Anthropic SDK Integration
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-2">SynapseQA v1.3 Quickstart &amp; Architecture</h3>
+            <p className="text-xs text-zinc-400 mb-6">
+              Integrate autonomous Claude 3.7 Sonnet Computer Use verification directly into your CI/CD pipeline with Ephemeral Prompt Caching enabled by default.
+            </p>
+
+            <div className="space-y-6 text-left">
+              <div>
+                <h4 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider mb-2">1. GitHub Actions CI/CD Workflow (`.github/workflows/synapseqa.yml`)</h4>
+                <pre className="p-4 rounded-xl bg-black/80 border border-zinc-800 font-mono text-[11px] text-zinc-300 overflow-x-auto leading-relaxed">{`name: Autonomous Visual QA
+on: [pull_request]
+
+jobs:
+  synapseqa-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run SynapseQA Claude Computer Use Agent
+        run: npx synapseqa --target="\${{ env.PREVIEW_URL }}" --autonomous --auto-pr
+        env:
+          ANTHROPIC_API_KEY: \${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}`}</pre>
+              </div>
+
+              <div>
+                <h4 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider mb-2">2. Python Agent SDK with Ephemeral Prompt Caching &amp; Extended Thinking</h4>
+                <pre className="p-4 rounded-xl bg-black/80 border border-zinc-800 font-mono text-[11px] text-zinc-300 overflow-x-auto leading-relaxed">{`from agent.computer_use import SynapseAgent
+
+agent = SynapseAgent(
+    model="claude-3-7-sonnet-20250219",
+    viewport_width=1440,
+    viewport_height=900
+)
+
+# Executes headless Playwright + Claude Computer Use (computer_20250124)
+# Caches repository AST via cache_control={"type": "ephemeral"} (-90% token cost)
+result = await agent.run_autonomous_audit(
+    target_url="https://stage.myapp.dev/checkout",
+    prompt="Verify discount code SPRING25 recalculates tax and total accurately."
+)`}</pre>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-800">
+                  <div className="text-xs font-semibold text-white">Firecracker Micro-VMs</div>
+                  <div className="text-[11px] text-zinc-400 mt-1">Ephemeral isolated browser sandboxes destroyed immediately post-run.</div>
+                </div>
+                <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-800">
+                  <div className="text-xs font-semibold text-orange-400">94.2% Cache Hit Ratio</div>
+                  <div className="text-[11px] text-zinc-400 mt-1">Anthropic Prompt Caching keeps multi-step DOM/AST inspection fast and affordable.</div>
+                </div>
+                <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-800">
+                  <div className="text-xs font-semibold text-emerald-400">Zero-Selector Guarantee</div>
+                  <div className="text-[11px] text-zinc-400 mt-1">Pure coordinate &amp; visual perception via Claude 3.7 Sonnet Computer Use.</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-zinc-800 flex justify-between items-center">
+              <a
+                href="https://github.com/yakupakcay-eng/synapseqa"
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-orange-400 hover:underline font-medium"
+              >
+                View Full Source on GitHub &rarr;
+              </a>
+              <button
+                onClick={() => setIsDocsOpen(false)}
+                className="px-5 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Interactive Waitlist / Request Access Modal */}
       {isModalOpen && (
