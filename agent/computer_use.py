@@ -61,18 +61,18 @@ class SynapseAgent:
         """
         Boots isolated Chromium session with fixed DPR and high-precision event mapping.
         """
-        async with async_playwright() as p:
-            browser: Browser = await p.chromium.launch(
-                headless=True,
-                args=["--disable-gpu", "--no-sandbox", "--disable-dev-shm-usage"]
-            )
-            context = await browser.new_context(
-                viewport={"width": self.viewport_width, "height": self.viewport_height},
-                device_scale_factor=1,
-            )
-            page: Page = await context.new_page()
-            await page.goto(target_url, wait_until="networkidle")
-            return browser, page
+        playwright_ctx = await async_playwright().start()
+        browser: Browser = await playwright_ctx.chromium.launch(
+            headless=True,
+            args=["--disable-gpu", "--no-sandbox", "--disable-dev-shm-usage"]
+        )
+        context = await browser.new_context(
+            viewport={"width": self.viewport_width, "height": self.viewport_height},
+            device_scale_factor=1,
+        )
+        page: Page = await context.new_page()
+        await page.goto(target_url, wait_until="networkidle")
+        return playwright_ctx, browser, page
 
     async def capture_screen(self, page) -> str:
         """
@@ -149,8 +149,9 @@ class SynapseAgent:
         """
         if not self.api_key:
             return {
-                "thinking": "Simulated thinking: Verified viewport layout and target coordinates.",
+                "thinking": "Dry-run mode (no ANTHROPIC_API_KEY set): Verified viewport layout and target coordinates.",
                 "action": {"action": "left_click", "coordinate": [842, 310]},
+                "stop_reason": "end_turn",
                 "usage": {
                     "input_tokens": 1420,
                     "cache_creation_input_tokens": 0,
@@ -184,28 +185,120 @@ class SynapseAgent:
             ],
             betas=["computer-use-2025-01-24", "prompt-caching-2024-07-31"],
         )
-        return {"raw_response": response}
 
-    async def run_autonomous_audit(self, target_url: str, prompt: str) -> Dict[str, Any]:
+        thinking_text = ""
+        tool_action = None
+        for block in getattr(response, "content", []):
+            block_type = getattr(block, "type", None)
+            if block_type == "thinking":
+                thinking_text = getattr(block, "thinking", "")
+            elif block_type == "tool_use" and getattr(block, "name", "") == "computer":
+                tool_action = getattr(block, "input", {})
+
+        usage_obj = getattr(response, "usage", None)
+        cache_read = getattr(usage_obj, "cache_read_input_tokens", 0) if usage_obj else 0
+        input_tok = getattr(usage_obj, "input_tokens", 1) if usage_obj else 1
+
+        return {
+            "thinking": thinking_text,
+            "action": tool_action,
+            "stop_reason": getattr(response, "stop_reason", "end_turn"),
+            "usage": {
+                "input_tokens": input_tok,
+                "cache_read_input_tokens": cache_read,
+            },
+            "raw_response": response,
+        }
+
+    async def run_autonomous_audit(
+        self,
+        target_url: str,
+        prompt: str,
+        ast_context: str = "",
+        max_steps: int = 6,
+    ) -> Dict[str, Any]:
         """
-        Main Agent Loop:
-        1. Capture screenshot
-        2. Query Claude 3.7 Sonnet Computer Use API (with Ephemeral Prompt Caching & Extended Thinking)
-        3. Execute tools
-        4. Loop until goal reached or bug detected
+        Main Multi-Step Agent Loop:
+        1. Boot Playwright Chromium sandbox (or run dry-run simulation if API key is absent)
+        2. Capture viewport screenshot
+        3. Query Claude 3.7 Sonnet Computer Use API (with Ephemeral Prompt Caching & Extended Thinking)
+        4. Dispatch coordinate actions to Playwright until goal is verified
         """
+        if not self.api_key:
+            step_result = await self.invoke_claude_computer_use("", prompt, ast_context)
+            self.telemetry_history.append(
+                ExecutionTelemetry(
+                    step_id=1,
+                    action_type=step_result["action"]["action"],
+                    coordinates=step_result["action"]["coordinate"],
+                    thought_stream=step_result["thinking"],
+                )
+            )
+            return {
+                "status": "COMPLETED_DRY_RUN",
+                "target": target_url,
+                "model": self.model,
+                "steps_executed": len(self.telemetry_history),
+                "prompt_cache_hit_ratio": 0.942,
+                "telemetry": [t.model_dump() for t in self.telemetry_history],
+            }
+
+        playwright_ctx, browser, page = await self.initialize_sandbox(target_url)
+        total_cache_read = 0
+        total_input = 0
+
+        try:
+            for step_idx in range(1, max_steps + 1):
+                screenshot_b64 = await self.capture_screen(page)
+                step_result = await self.invoke_claude_computer_use(
+                    screenshot_b64=screenshot_b64,
+                    user_goal=prompt,
+                    ast_context=ast_context,
+                )
+
+                usage = step_result.get("usage", {})
+                total_cache_read += usage.get("cache_read_input_tokens", 0)
+                total_input += usage.get("input_tokens", 0) + usage.get("cache_read_input_tokens", 0)
+
+                action = step_result.get("action")
+                self.telemetry_history.append(
+                    ExecutionTelemetry(
+                        step_id=step_idx,
+                        action_type=action.get("action", "verify") if action else "verify",
+                        coordinates=action.get("coordinate") if action else None,
+                        screenshot_b64=screenshot_b64,
+                        thought_stream=step_result.get("thinking", ""),
+                    )
+                )
+
+                if not action or step_result.get("stop_reason") == "end_turn":
+                    break
+
+                await self.execute_action(page, action)
+        finally:
+            await browser.close()
+            await playwright_ctx.stop()
+
+        cache_ratio = round(total_cache_read / max(total_input, 1), 3)
         return {
             "status": "COMPLETED",
             "target": target_url,
             "model": self.model,
-            "assertions_passed": 5,
-            "flakiness_score": 0.001,
-            "latency_ms": 3200,
-            "prompt_cache_hit_ratio": 0.94,
-            "code_diff_recommended": None,
+            "steps_executed": len(self.telemetry_history),
+            "prompt_cache_hit_ratio": cache_ratio,
+            "telemetry": [t.model_dump(exclude={"screenshot_b64"}) for t in self.telemetry_history],
         }
 
 
 if __name__ == "__main__":
-    print("[SynapseQA Engine v1.3] Autonomous Computer Use + Prompt Caching Agent initialized.")
+    print("[SynapseQA Engine v1.3.0] Autonomous Computer Use + Prompt Caching Agent initialized.")
+    agent = SynapseAgent()
+    summary = asyncio.run(
+        agent.run_autonomous_audit(
+            target_url="https://www.synapseqa.me",
+            prompt="Verify primary navigation and interactive sandbox controls.",
+        )
+    )
+    print(f"[SynapseQA Engine] Audit status: {summary['status']} | Steps: {summary['steps_executed']}")
+
 

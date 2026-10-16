@@ -15,11 +15,11 @@ const banner = `
   \x1b[38;5;208m/____/\\__, /_/ /_/\\__,_/ .___/____/\\___(_)___\\_/_/  |_|\x1b[0m
   \x1b[38;5;208m     /____/           /_/                              \x1b[0m
   \x1b[90mAutonomous Web QA Engine • Powered by Claude 3.7 Computer Use\x1b[0m
-  \x1b[90mVersion: 1.2.0 • https://www.synapseqa.me\x1b[0m
+  \x1b[90mVersion: 1.3.0 • https://www.synapseqa.me\x1b[0m
 `;
 
 if (args.includes('--version') || args.includes('-v')) {
-  console.log('SynapseQA CLI v1.2.0 (engine: claude-3-7-sonnet-20250219)');
+  console.log('SynapseQA CLI v1.3.0 (engine: claude-3-7-sonnet-20250219, tool: computer_20250124)');
   process.exit(0);
 }
 
@@ -27,7 +27,7 @@ if (args.includes('--help') || args.includes('-h')) {
   console.log(banner);
   console.log(`
 Usage:
-  $ npx synapseqa [options]
+  $ npx github:yakupakcay-eng/synapseqa [options]
   $ synapseqa <command> [flags]
 
 Commands:
@@ -36,7 +36,7 @@ Commands:
   init            Initialize SynapseQA configuration in your repository
 
 Options:
-  --target <url>  Target web application URL (default: http://localhost:3000)
+  --target <url>  Target web application URL (default: https://www.synapseqa.me)
   --scenario <s>  Pre-configured test journey (checkout, auth, bugfix)
   --autonomous    Enable Claude Computer Use coordinate-based navigation
   --auto-pr       Automatically open GitHub PR on detected regression
@@ -45,8 +45,8 @@ Options:
   -h, --help      Show help information
 
 Examples:
-  $ npx synapseqa --target="https://stage.myapp.com" --autonomous
-  $ npx synapseqa run --scenario=checkout --auto-pr
+  $ npx github:yakupakcay-eng/synapseqa --target="https://stage.myapp.com" --autonomous
+  $ npx github:yakupakcay-eng/synapseqa run --scenario=checkout --auto-pr
 `);
   process.exit(0);
 }
@@ -57,7 +57,7 @@ const targetIndex = args.indexOf('--target');
 const targetUrl = targetIndex !== -1 && args[targetIndex + 1] ? args[targetIndex + 1] : 'https://www.synapseqa.me';
 
 console.log(`\x1b[36mℹ\x1b[0m Initializing SynapseQA runtime...`);
-console.log(`\x1b[90m• Engine:\x1b[0m Anthropic Claude 3.7 Sonnet Computer Use (beta)`);
+console.log(`\x1b[90m• Engine:\x1b[0m Anthropic Claude 3.7 Sonnet (\x1b[33mcomputer_20250124\x1b[0m + \x1b[33mephemeral cache\x1b[0m)`);
 console.log(`\x1b[90m• Target:\x1b[0m \x1b[32m${targetUrl}\x1b[0m`);
 console.log(`\x1b[90m• Viewport:\x1b[0m 1440x900 (DPR: 1.0, Headless Chromium)\n`);
 

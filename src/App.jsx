@@ -109,9 +109,9 @@ export default function App() {
   }, [isRunningTest, currentStepIndex, selectedScenario]);
 
   const quickstartSnippets = {
-    cli: 'npx synapseqa --target="https://stage.myapp.dev" --autonomous --auto-pr',
-    ci: '- uses: yakupakcay-eng/synapseqa@v1\n  with:\n    anthropic-key: ${{ secrets.ANTHROPIC_API_KEY }}',
-    sdk: 'agent = SynapseAgent(model="claude-3-7-sonnet-20250219", prompt_caching=True)'
+    cli: 'npx github:yakupakcay-eng/synapseqa --target="https://stage.myapp.dev" --autonomous',
+    ci: 'npx github:yakupakcay-eng/synapseqa --target="${{ env.PREVIEW_URL }}" --auto-pr',
+    sdk: 'agent = SynapseAgent(model="claude-3-7-sonnet-20250219")'
   };
 
   const copyInstallCode = () => {
@@ -1060,19 +1060,19 @@ anthropic-beta: computer-use-2025-01-24, prompt-caching-2024-07-31
             <div className="w-6 h-6 rounded-lg bg-orange-500 flex items-center justify-center text-white">
               <Eye className="w-3.5 h-3.5" />
             </div>
-            <span className="font-semibold text-zinc-300">SynapseQA Inc.</span>
+            <span className="font-semibold text-zinc-300">SynapseQA</span>
             <span>&copy; 2026 All rights reserved.</span>
             <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-[11px] font-medium">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              All Agent Clusters Operational (99.98%)
+              Engine v1.3.0 &bull; Claude 3.7 Ready
             </span>
           </div>
           <div className="flex flex-wrap justify-center gap-6 text-zinc-400">
-            <a href="#live-simulator" className="hover:text-white transition-colors">Product</a>
-            <a href="#architecture" className="hover:text-white transition-colors">Claude Engine</a>
+            <a href="#live-simulator" className="hover:text-white transition-colors">Workbench</a>
+            <a href="#architecture" className="hover:text-white transition-colors">Claude Primitives</a>
             <button onClick={() => setIsDocsOpen(true)} className="hover:text-white transition-colors cursor-pointer">Docs &amp; SDK</button>
             <a href="https://github.com/yakupakcay-eng/synapseqa" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">GitHub</a>
-            <button onClick={() => setIsModalOpen(true)} className="hover:text-white transition-colors cursor-pointer">Request Access</button>
+            <a href="mailto:founder@synapseqa.me" className="hover:text-white transition-colors">founder@synapseqa.me</a>
           </div>
         </div>
       </footer>
@@ -1108,7 +1108,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run SynapseQA Claude Computer Use Agent
-        run: npx synapseqa --target="\${{ env.PREVIEW_URL }}" --autonomous --auto-pr
+        run: npx github:yakupakcay-eng/synapseqa --target="\${{ env.PREVIEW_URL }}" --autonomous --auto-pr
         env:
           ANTHROPIC_API_KEY: \${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}`}</pre>
@@ -1134,8 +1134,8 @@ result = await agent.run_autonomous_audit(
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
                 <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-800">
-                  <div className="text-xs font-semibold text-white">Firecracker Micro-VMs</div>
-                  <div className="text-[11px] text-zinc-400 mt-1">Ephemeral isolated browser sandboxes destroyed immediately post-run.</div>
+                  <div className="text-xs font-semibold text-white">Isolated Browser Workers</div>
+                  <div className="text-[11px] text-zinc-400 mt-1">Ephemeral headless Chromium sandboxes destroyed immediately post-run.</div>
                 </div>
                 <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-800">
                   <div className="text-xs font-semibold text-orange-400">94.2% Cache Hit Ratio</div>
@@ -1184,9 +1184,9 @@ result = await agent.run_autonomous_audit(
                 <div className="w-10 h-10 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-400 mb-4">
                   <Sparkles className="w-5 h-5" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-1">Request Private Pilot Access</h3>
+                <h3 className="text-xl font-bold text-white mb-1">Request Early Pilot Access</h3>
                 <p className="text-xs text-zinc-400 mb-5">
-                  Join 140+ forward-thinking teams testing web applications autonomously with Claude 3.7 Sonnet Computer Use.
+                  Deploy autonomous Claude 3.7 Sonnet Computer Use verification on your staging pipelines or run our open-source CLI today.
                 </p>
 
                 <form
@@ -1221,16 +1221,16 @@ result = await agent.run_autonomous_audit(
                     type="submit"
                     className="w-full py-2.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm shadow-lg shadow-orange-500/25 transition-all cursor-pointer"
                   >
-                    Get Early Access Key
+                    Request Managed Pilot
                   </button>
                 </form>
               </div>
             ) : (
               <div className="text-center py-6">
                 <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
-                <h3 className="text-lg font-bold text-white mb-1">You're on the priority pilot list!</h3>
-                <p className="text-xs text-zinc-400 mb-6">
-                  We sent an invitation link and API sandbox key to <span className="text-orange-400 font-mono">{emailInput}</span>.
+                <h3 className="text-lg font-bold text-white mb-1">Pilot Request Registered</h3>
+                <p className="text-xs text-zinc-400 mb-4">
+                  We recorded <span className="text-orange-400 font-mono">{emailInput}</span> for early pilot onboarding. You can also test locally right now via GitHub CLI or reach out directly at <a href="mailto:founder@synapseqa.me" className="text-orange-400 underline">founder@synapseqa.me</a>.
                 </p>
                 <button
                   onClick={() => { setIsModalOpen(false); setSubmitted(false); }}

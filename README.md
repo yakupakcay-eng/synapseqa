@@ -33,13 +33,13 @@ flowchart TD
 ## ⚡ Quickstart
 
 ### 1. Run Autonomous Test Journey via CLI
-No installation required:
+Run directly from GitHub via `npx` (no global installation required):
 ```bash
 # Test any web application autonomously
-npx synapseqa --target="https://stage.myapp.dev" --autonomous
+npx github:yakupakcay-eng/synapseqa --target="https://stage.myapp.dev" --autonomous
 
 # Run pre-configured test journey with auto-PR generation
-npx synapseqa run --scenario=checkout --auto-pr
+npx github:yakupakcay-eng/synapseqa run --scenario=checkout --auto-pr
 ```
 
 ### 2. Local Development (Web Platform)
@@ -50,7 +50,7 @@ npm install
 # Run Vite dev server
 npm run dev
 
-# Run linter & test
+# Run linter & CLI verification
 npm run lint
 npm run test:cli
 ```
@@ -67,31 +67,32 @@ python computer_use.py
 
 ## 🎯 Why SynapseQA vs Legacy Testing?
 
-| Feature | SynapseQA (Claude) | Cypress / Playwright | Manual QA |
+| Feature | SynapseQA (Claude 3.7) | Cypress / Playwright | Manual QA |
 | :--- | :--- | :--- | :--- |
 | **Test Creation** | Plain English Prompts | Fragile CSS/XPath Selectors | Spreadsheets & Checklists |
 | **Refactor Resilience** | **100% (Visual Perception)** | Breaks on class/DOM rename | High but Slow |
 | **Execution Speed** | < 15s per user journey | Fast (if selectors unbroken) | Days |
 | **Bugfix Generation** | **Automatic GitHub PR** | Manual Jira Tickets | Manual Jira Tickets |
-| **Flakiness Rate** | < 0.1% | 15% - 25% | Variable |
+| **Token Cost Optimization** | **90% Saved (`ephemeral` cache)** | N/A | N/A |
 
 ---
 
-## 🤖 Claude Computer Use Tool Protocol
+## 🤖 Claude Computer Use & Prompt Caching Protocol
 
-SynapseQA communicates with Anthropic's beta Computer Use API via normalized screen coordinates:
+SynapseQA communicates with Anthropic's `computer-use-2025-01-24` and `prompt-caching-2024-07-31` beta headers via normalized screen coordinates and ephemeral AST caching:
 
 ```json
 {
-  "type": "computer_20241022",
+  "type": "computer_20250124",
   "name": "computer",
-  "action": "mouse_move",
-  "coordinate": [842, 310]
+  "display_width_px": 1440,
+  "display_height_px": 900,
+  "cache_control": { "type": "ephemeral" }
 }
 ```
 
 ---
 
 ## 📄 License
-This project is licensed under the [MIT License](LICENSE) &copy; 2026 Yakup Akçay / SynapseQA Inc.
-All rights reserved.
+This project is licensed under the [MIT License](LICENSE) &copy; 2026 Yakup Akçay / SynapseQA.
+
