@@ -7,1239 +7,602 @@ import {
   Terminal,
   Cpu,
   Eye,
-  Shield,
   GitPullRequest,
   Sparkles,
   Layers,
   Code2,
   Check,
   RefreshCw,
-  Sliders,
-  DollarSign,
   MousePointer,
   HelpCircle,
-  Copy
+  Copy,
+  Circle
 } from 'lucide-react';
 
+const REPO_URL = 'https://github.com/yakupakcay-eng/synapseqa';
+const CONTACT_EMAIL = 'founder@synapseqa.me';
+const MODEL_ID = 'claude-sonnet-5-5';
+const TOOLSET_ID = 'computer_toolset_20260801';
+
+// Scripted walkthroughs: they illustrate what a run looks like. They are NOT live model output.
 const scenarios = {
   checkout: {
-    title: 'E-Commerce Checkout & Discount Flow',
-    description: 'Navigate to cart, apply coupon code "SPRING25", ensure shipping recalculates, and verify edge case with expired card.',
     steps: [
-      { title: 'Booting Sandboxed Chromium', detail: 'Allocated clean browser instance (Viewport 1440x900). Claude Computer Use initialized.', status: 'done', latency: '0.4s' },
-      { title: 'Visual Coordinate Mapping', detail: 'Claude Vision inspected screen: mapped "Add to Cart" button at (x: 842, y: 310).', status: 'done', latency: '0.9s' },
-      { title: 'Autonomous Action: Mouse Move & Click', detail: 'Moved cursor to cart button, dispatched click event, cart drawer expanded.', status: 'done', latency: '0.3s' },
-      { title: 'Input Text & Coupon Validation', detail: 'Entered "SPRING25" into coupon field. Claude detected layout shift: Total updated from $120.00 to $90.00 (-25%).', status: 'done', latency: '1.1s' },
-      { title: 'Negative Testing: Expired Card', detail: 'Tested credit card year 2023. Verified proper inline warning: "Card expired" displayed with proper aria-live attribute.', status: 'done', latency: '0.8s' },
-      { title: 'Test Verdict: PASSED', detail: 'All 5 assertions met. Full video replay and trace telemetry logged to CI dashboard.', status: 'success', latency: '3.5s total' }
+      { title: 'screenshot', detail: 'Agent looks at the loaded cart page before acting.' },
+      { title: 'left_click → promo field', detail: 'Clicks the promo input found visually at the pixel coordinates it chose.' },
+      { title: 'type "SPRING25"', detail: 'Types the code, then clicks Apply.' },
+      { title: 'screenshot → compare', detail: 'Reads the new total on screen and checks it against the expected discount.' },
+      { title: 'Report: VERDICT: PASS', detail: 'Plain-text report with the evidence it observed.', done: true }
     ]
   },
-  auth: {
-    title: 'SaaS Workspace Onboarding & RBAC',
-    description: 'Verify new user invite, team permissions, role-based access control, and dark mode preference persistence.',
+  layout: {
     steps: [
-      { title: 'Session Isolation & Multi-Context', detail: 'Spawned dual browser sessions: Admin (Owner) and Invitee (Read-Only).', status: 'done', latency: '0.6s' },
-      { title: 'Admin Invitation Dispatch', detail: 'Admin typed invite email "colleague@acme.inc", role assigned: "Editor".', status: 'done', latency: '0.7s' },
-      { title: 'Magic Link Token Extraction', detail: 'Claude fetched webhook token, opened magic link in second browser.', status: 'done', latency: '1.0s' },
-      { title: 'Visual Regression & RBAC Check', detail: 'Verified that "Billing" tab is hidden for Editor role. Claude Vision confirmed zero forbidden UI buttons leaked.', status: 'done', latency: '0.9s' },
-      { title: 'Test Verdict: PASSED', detail: 'RBAC boundary preserved. Zero security leaks detected.', status: 'success', latency: '3.2s total' }
-    ]
-  },
-  bugfix: {
-    title: 'Autonomous Bug Discovery & Auto-PR',
-    description: 'Find broken checkout modal on mobile viewport (390x844), detect overflowing button, and generate code fix.',
-    steps: [
-      { title: 'Mobile Viewport Emulation', detail: 'Resized viewport to iPhone 15 Pro (390x844, DPR 3).', status: 'done', latency: '0.3s' },
-      { title: 'Visual Anomaly Flagged', detail: 'Claude Vision detected: "Proceed to Payment" button overlaps with fixed bottom navigation bar.', status: 'warning', latency: '0.8s' },
-      { title: 'DOM & CSS Root-Cause Analysis', detail: 'Identified culprit: `.checkout-footer` lacks `pb-safe` (safe-area-inset-bottom padding).', status: 'done', latency: '1.2s' },
-      { title: 'Autonomous PR Generated', detail: 'Created Git Branch `fix/checkout-mobile-overflow` with 2-line Tailwind fix. Opened PR #142 with before/after screenshots.', status: 'success', latency: '2.8s total' }
+      { title: 'screenshot @ 390x844', detail: 'Mobile-sized viewport, same page.' },
+      { title: 'scroll → bottom', detail: 'Scrolls to the checkout footer.' },
+      { title: 'screenshot → defect noticed', detail: 'The primary button is partly hidden behind the fixed bottom bar.', warn: true },
+      { title: 'Report: VERDICT: FAIL', detail: 'Describes the clipped button so a human can fix it.', done: true }
     ]
   }
 };
 
+const quickstarts = {
+  run: {
+    label: 'Run the agent',
+    code: `git clone ${REPO_URL} && cd synapseqa
+pip install -r agent/requirements.txt && playwright install chromium
+export ANTHROPIC_API_KEY=sk-ant-...
+node cli/bin/synapseqa.js --target=https://example.com --goal="Smoke-test the sign-up flow"`
+  },
+  python: {
+    label: 'Python',
+    code: `import asyncio
+from agent.computer_use import SynapseAgent
+
+result = asyncio.run(
+    SynapseAgent().run_audit("https://example.com", "Smoke-test the sign-up flow")
+)
+print(result["status"], result["report"])`
+  }
+};
+
+const works = [
+  'Multi-turn agent loop: screenshot → tool_use → tool_result, with full message history',
+  'Browser action dispatcher on headless Chromium (click, type, key, scroll, wait)',
+  'CLI launcher with PASS / FAIL exit codes for CI',
+  'Offline unit tests with a scripted fake Claude client, run in CI',
+  'Honest dry-run: with no API key it says nothing was tested'
+];
+const planned = [
+  'Benchmarks on real apps: accuracy, cost per run, latency (not measured yet)',
+  'Repo-aware diagnosis: feed source files to Claude to localise the defect',
+  'PR creation from a model-proposed patch is implemented but not yet run on a live repo',
+  'Hosted runner and parallel runs',
+  'Trace and replay viewer'
+];
+
 export default function App() {
   const [selectedScenario, setSelectedScenario] = useState('checkout');
-  const [isRunningTest, setIsRunningTest] = useState(false);
-  const [currentStepIndex, setCurrentStepIndex] = useState(-1);
-  const [targetUrl, setTargetUrl] = useState('https://stage.acmestore.io/app');
+  const [isRunning, setIsRunning] = useState(false);
+  const [stepIndex, setStepIndex] = useState(-1);
   const [telemetryTab, setTelemetryTab] = useState('stream');
-  const [quickstartTab, setQuickstartTab] = useState('cli');
-  const [customPrompt, setCustomPrompt] = useState('Test user login with Google OAuth, navigate to settings, toggle 2FA, and assert confirmation modal appears.');
+  const [quickstartTab, setQuickstartTab] = useState('run');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDocsOpen, setIsDocsOpen] = useState(false);
   const [emailInput, setEmailInput] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const [projectInput, setProjectInput] = useState('');
   const [copiedCode, setCopiedCode] = useState(false);
 
-  // ROI Calculator states
-  const [devCount, setDevCount] = useState(8);
-  const [releasesPerWeek, setReleasesPerWeek] = useState(4);
-  const [hourlyRate, setHourlyRate] = useState(65);
-
-  const calculateSavings = () => {
-    const hoursSpentOnQAWeekly = devCount * 6; // ~6 hrs per dev per week
-    const monthlyCost = hoursSpentOnQAWeekly * 4.2 * hourlyRate;
-    const hoursSavedMonthly = Math.round(hoursSpentOnQAWeekly * 4.2 * 0.85);
-    const dollarsSavedMonthly = Math.round(monthlyCost * 0.85);
-    return { hoursSavedMonthly, dollarsSavedMonthly };
-  };
-
-  const { hoursSavedMonthly, dollarsSavedMonthly } = calculateSavings();
-
-  const runSimulation = () => {
-    setIsRunningTest(true);
-    setCurrentStepIndex(0);
-  };
+  const steps = scenarios[selectedScenario].steps;
 
   useEffect(() => {
-    if (isRunningTest) {
-      const activeSteps = scenarios[selectedScenario].steps;
-      if (currentStepIndex < activeSteps.length - 1) {
-        const timer = setTimeout(() => {
-          setCurrentStepIndex(prev => prev + 1);
-        }, 1200);
-        return () => clearTimeout(timer);
-      } else {
-        const endTimer = setTimeout(() => {
-          setIsRunningTest(false);
-        }, 1500);
-        return () => clearTimeout(endTimer);
-      }
-    }
-  }, [isRunningTest, currentStepIndex, selectedScenario]);
+    if (!isRunning) return undefined;
+    const timer = setTimeout(() => {
+      if (stepIndex < steps.length - 1) setStepIndex((i) => i + 1);
+      else setIsRunning(false);
+    }, 1100);
+    return () => clearTimeout(timer);
+  }, [isRunning, stepIndex, steps.length]);
 
-  const quickstartSnippets = {
-    cli: 'npx github:yakupakcay-eng/synapseqa --target="https://stage.myapp.dev" --autonomous',
-    ci: 'npx github:yakupakcay-eng/synapseqa --target="${{ env.PREVIEW_URL }}" --auto-pr',
-    sdk: 'agent = SynapseAgent(model="claude-3-7-sonnet-20250219")'
+  const pickScenario = (key) => {
+    setSelectedScenario(key);
+    setStepIndex(-1);
+    setIsRunning(false);
   };
 
-  const copyInstallCode = () => {
-    navigator.clipboard.writeText(quickstartSnippets[quickstartTab]);
+  const runWalkthrough = () => {
+    setStepIndex(0);
+    setIsRunning(true);
+  };
+
+  const copyQuickstart = () => {
+    navigator.clipboard.writeText(quickstarts[quickstartTab].code);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
+  const submitEarlyAccess = (e) => {
+    e.preventDefault();
+    const subject = encodeURIComponent('SynapseQA early access');
+    const body = encodeURIComponent(`Email: ${emailInput}\nProject / repo: ${projectInput || '-'}\n\nWhat I would like to test:\n`);
+    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
+    setIsModalOpen(false);
+  };
+
+  const pill = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-500/20 bg-orange-500/10 text-orange-400 text-[11px] font-mono font-semibold uppercase tracking-wider mb-3';
+  const primaryBtn = 'text-xs font-semibold bg-gradient-to-b from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white px-4 py-2 rounded-lg shadow-lg shadow-orange-500/20 border border-orange-400/30 transition-all flex items-center gap-1.5 cursor-pointer';
+
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-100 selection:bg-orange-500/30 selection:text-orange-200">
-      {/* Architectural Grid & Ambient Spotlight */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute inset-0 bg-architectural-grid" />
         <div className="absolute -top-48 left-1/2 -translate-x-1/2 w-[1000px] h-[580px] bg-gradient-to-b from-orange-500/14 via-amber-500/5 to-transparent blur-[130px] rounded-full glow-ambient" />
-        <div className="absolute top-[750px] -left-40 w-[600px] h-[500px] bg-orange-600/5 blur-[150px] rounded-full" />
       </div>
 
-      {/* Top Banner: Claude for Startups Acknowledgement */}
+      {/* Banner */}
       <div className="relative z-50 border-b border-white/[0.07] bg-zinc-950/80 backdrop-blur-md px-4 py-2 text-center text-xs font-medium text-zinc-300 flex flex-wrap items-center justify-center gap-2">
         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-orange-500/15 border border-orange-500/30 text-[10px] text-orange-300 font-semibold tracking-wider uppercase">
-          <Sparkles className="w-3 h-3 text-orange-400" /> Anthropic Claude 3.7 Native
+          <Sparkles className="w-3 h-3 text-orange-400" /> Early stage &bull; Open source
         </span>
-        <span>Built on <strong>Computer Use (`computer_20250124`)</strong>, <strong>Extended Thinking</strong> &amp; <strong>Ephemeral Prompt Caching</strong>.</span>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="ml-1 text-orange-400 hover:text-orange-300 font-semibold underline underline-offset-4 transition-colors cursor-pointer"
-        >
-          Request Pilot Key &rarr;
-        </button>
+        <span>Agent loop on the Claude Messages API using the <code className="font-mono text-orange-300">{TOOLSET_ID}</code> computer use toolset.</span>
+        <a href={REPO_URL} target="_blank" rel="noreferrer" className="ml-1 text-orange-400 hover:text-orange-300 font-semibold underline underline-offset-4 transition-colors">
+          Read the code &rarr;
+        </a>
       </div>
 
-      {/* Header / Navbar */}
+      {/* Header */}
       <header className="relative z-40 border-b border-white/[0.07] bg-[#09090b]/80 backdrop-blur-xl sticky top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-b from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/25 border border-white/20">
               <Eye className="w-4 h-4 text-white" />
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-base font-bold tracking-tight text-white">
-                Synapse<span className="text-orange-500">QA</span>
-              </span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-zinc-900 text-zinc-400 border border-white/10 font-mono">
-                v1.3.0
-              </span>
-            </div>
+            <span className="text-base font-bold tracking-tight text-white">
+              Synapse<span className="text-orange-500">QA</span>
+            </span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-zinc-900 text-zinc-400 border border-white/10 font-mono">v1.4.0</span>
           </div>
 
           <nav className="hidden md:flex items-center gap-7 text-xs font-medium text-zinc-400">
-            <a href="#how-it-works" className="hover:text-white transition-colors">Pipeline</a>
-            <a href="#live-simulator" className="hover:text-white transition-colors">Live Workbench</a>
-            <a href="#architecture" className="hover:text-white transition-colors">Claude Primitives</a>
-            <a href="#roi-calculator" className="hover:text-white transition-colors">ROI Model</a>
-            <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
-            <button
-              onClick={() => setIsDocsOpen(true)}
-              className="hover:text-orange-400 transition-colors flex items-center gap-1 cursor-pointer text-zinc-300"
-            >
-              <Code2 className="w-3.5 h-3.5 text-orange-400" /> Docs &amp; SDK
+            <a href="#how-it-works" className="hover:text-white transition-colors">How it works</a>
+            <a href="#walkthrough" className="hover:text-white transition-colors">Walkthrough</a>
+            <a href="#status" className="hover:text-white transition-colors">Status</a>
+            <a href="#why-claude" className="hover:text-white transition-colors">Why Claude</a>
+            <button onClick={() => setIsDocsOpen(true)} className="hover:text-orange-400 transition-colors flex items-center gap-1 cursor-pointer text-zinc-300">
+              <Code2 className="w-3.5 h-3.5 text-orange-400" /> Docs
             </button>
           </nav>
 
-          <div className="flex items-center gap-2.5">
-            <button
-              onClick={() => setIsDocsOpen(true)}
-              className="text-xs font-medium text-zinc-300 hover:text-white px-3 py-1.5 rounded-lg border border-white/10 bg-white/[0.02] hover:bg-white/[0.06] transition-all cursor-pointer"
-            >
-              API Reference
-            </button>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="text-xs font-semibold bg-gradient-to-b from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white px-4 py-2 rounded-lg shadow-lg shadow-orange-500/20 border border-orange-400/30 transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              Start Free Pilot <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
+          <button onClick={() => setIsModalOpen(true)} className={primaryBtn}>
+            Request early access <ArrowRight className="w-3.5 h-3.5" />
+          </button>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative z-10 pt-20 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
-        <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border border-white/10 bg-zinc-900/80 backdrop-blur-md text-zinc-300 text-xs font-medium mb-8 shadow-sm">
-          <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-zinc-400">Anthropic Computer Use Beta</span>
+      {/* Hero */}
+      <section className="relative z-10 pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
+        <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border border-white/10 bg-zinc-900/80 backdrop-blur-md text-xs font-medium mb-8">
+          <span className="flex h-2 w-2 rounded-full bg-emerald-400" />
+          <span className="text-zinc-400">Open source &middot; MIT</span>
           <span className="text-zinc-700">|</span>
-          <span className="text-orange-400 font-semibold">Zero Selectors &bull; Auto-PR Remediation</span>
+          <span className="text-orange-400 font-semibold">Selector-free browser testing</span>
         </div>
 
-        <h1 className="text-4xl sm:text-6xl lg:text-[68px] font-extrabold tracking-[-0.035em] text-white max-w-5xl mx-auto leading-[1.06]">
-          Autonomous visual QA <br className="hidden sm:inline" />
+        <h1 className="text-4xl sm:text-6xl lg:text-[64px] font-extrabold tracking-[-0.035em] text-white max-w-4xl mx-auto leading-[1.06]">
+          QA that reads the screen{' '}
           <span className="bg-gradient-to-r from-white via-orange-200 to-orange-500 bg-clip-text text-transparent">
-            engineered on Claude Vision.
+            the way a user does.
           </span>
         </h1>
 
-        <p className="mt-6 text-base sm:text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed font-normal">
-          Replace brittle Cypress and Playwright selectors with self-healing multimodal agents. SynapseQA boots isolated Firecracker browsers, perceives UI pixels via <strong>Claude 3.7 Sonnet Computer Use</strong>, and opens GitHub Pull Requests with verified CSS/AST fixes.
+        <p className="mt-6 text-base sm:text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed">
+          SynapseQA lets Claude drive a real browser from screenshots. You describe a journey in plain English;
+          the agent clicks, types and scrolls, then reports PASS or FAIL with what it saw. No CSS or XPath selectors to maintain.
         </p>
 
-        {/* CTA Buttons */}
         <div className="mt-9 flex flex-wrap items-center justify-center gap-3.5">
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="px-6 py-3 rounded-xl bg-gradient-to-b from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold text-sm shadow-xl shadow-orange-500/20 border border-orange-400/30 flex items-center gap-2 transition-all cursor-pointer hover:scale-[1.01]"
-          >
-            Deploy Autonomous Agent <ArrowRight className="w-4 h-4" />
-          </button>
-          <a
-            href="#live-simulator"
-            className="px-6 py-3 rounded-xl border border-white/10 hover:border-white/20 bg-zinc-900/70 hover:bg-zinc-800/80 text-zinc-200 font-medium text-sm flex items-center gap-2 transition-all surface-glass"
-          >
-            <Play className="w-3.5 h-3.5 text-orange-400 fill-orange-400" /> Launch Interactive Sandbox
+          <a href={REPO_URL} target="_blank" rel="noreferrer" className="px-6 py-3 rounded-xl bg-gradient-to-b from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold text-sm shadow-xl shadow-orange-500/20 border border-orange-400/30 flex items-center gap-2 transition-all">
+            View on GitHub <ArrowRight className="w-4 h-4" />
+          </a>
+          <a href="#walkthrough" className="px-6 py-3 rounded-xl border border-white/10 hover:border-white/20 bg-zinc-900/70 hover:bg-zinc-800/80 text-zinc-200 font-medium text-sm flex items-center gap-2 transition-all surface-glass">
+            <Play className="w-3.5 h-3.5 text-orange-400 fill-orange-400" /> See a walkthrough
           </a>
         </div>
 
-        {/* Multi-Tab Developer Quickstart Command Bar */}
-        <div className="mt-12 max-w-2xl mx-auto rounded-2xl border border-white/10 surface-glass overflow-hidden text-left shadow-2xl">
+        {/* Quickstart */}
+        <div className="mt-12 max-w-3xl mx-auto rounded-2xl border border-white/10 surface-glass overflow-hidden text-left shadow-2xl">
           <div className="flex items-center justify-between px-4 py-2 border-b border-white/[0.07] bg-black/40 text-[11px]">
             <div className="flex items-center gap-1">
-              <button
-                onClick={() => setQuickstartTab('cli')}
-                className={`px-2.5 py-1 rounded-md font-mono transition-colors cursor-pointer ${quickstartTab === 'cli' ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30 font-semibold' : 'text-zinc-400 hover:text-zinc-200'}`}
-              >
-                CLI Quickstart
-              </button>
-              <button
-                onClick={() => setQuickstartTab('ci')}
-                className={`px-2.5 py-1 rounded-md font-mono transition-colors cursor-pointer ${quickstartTab === 'ci' ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30 font-semibold' : 'text-zinc-400 hover:text-zinc-200'}`}
-              >
-                GitHub Actions
-              </button>
-              <button
-                onClick={() => setQuickstartTab('sdk')}
-                className={`px-2.5 py-1 rounded-md font-mono transition-colors cursor-pointer ${quickstartTab === 'sdk' ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30 font-semibold' : 'text-zinc-400 hover:text-zinc-200'}`}
-              >
-                Python SDK
-              </button>
+              {Object.entries(quickstarts).map(([key, q]) => (
+                <button
+                  key={key}
+                  onClick={() => setQuickstartTab(key)}
+                  className={`px-2.5 py-1 rounded-md font-mono transition-colors cursor-pointer ${quickstartTab === key ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30 font-semibold' : 'text-zinc-400 hover:text-zinc-200'}`}
+                >
+                  {q.label}
+                </button>
+              ))}
             </div>
-            <span className="text-zinc-500 font-mono text-[10px]">Node &gt;= 20 &bull; Python 3.11+</span>
+            <span className="text-zinc-500 font-mono text-[10px]">Node &gt;= 20 &bull; Python 3.10+ &bull; needs your own ANTHROPIC_API_KEY</span>
           </div>
-          <div className="p-4 font-mono text-xs flex items-center justify-between gap-3 bg-black/50">
-            <div className="flex items-center gap-2.5 overflow-x-auto py-0.5">
-              <span className="text-orange-500 font-bold select-none">$</span>
-              <code className="text-zinc-200 whitespace-pre">{quickstartSnippets[quickstartTab]}</code>
-            </div>
+          <div className="p-4 font-mono text-xs flex items-start justify-between gap-3 bg-black/50">
+            <pre className="text-zinc-200 whitespace-pre overflow-x-auto leading-relaxed"><span className="text-orange-500 select-none">$ </span>{quickstarts[quickstartTab].code}</pre>
             <button
-              onClick={copyInstallCode}
+              onClick={copyQuickstart}
               className="p-2 rounded-lg border border-white/10 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer text-[11px]"
               title="Copy snippet"
             >
               {copiedCode ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-emerald-400 font-sans font-medium">Copied</span>
-                </>
+                <><Check className="w-3.5 h-3.5 text-emerald-400" /><span className="text-emerald-400 font-sans font-medium">Copied</span></>
               ) : (
-                <>
-                  <Copy className="w-3.5 h-3.5" />
-                  <span className="font-sans font-medium">Copy</span>
-                </>
+                <><Copy className="w-3.5 h-3.5" /><span className="font-sans font-medium">Copy</span></>
               )}
             </button>
           </div>
         </div>
 
-        {/* Key Engineering Telemetry Metrics */}
-        <div className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto text-left">
-          <div className="p-5 rounded-2xl border border-white/[0.08] surface-glass">
-            <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Selector Maintenance</div>
-            <div className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1">0 hrs/wk</div>
-            <div className="text-[11px] text-emerald-400 mt-1 font-medium">100% coordinate perception</div>
-          </div>
-          <div className="p-5 rounded-2xl border border-white/[0.08] surface-glass">
-            <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Prompt Cache Hit Rate</div>
-            <div className="text-2xl sm:text-3xl font-bold text-orange-400 tracking-tight mt-1">94.2%</div>
-            <div className="text-[11px] text-zinc-400 mt-1">Via `ephemeral` AST caching</div>
-          </div>
-          <div className="p-5 rounded-2xl border border-white/[0.08] surface-glass">
-            <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Median Journey Audit</div>
-            <div className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1">3.2 sec</div>
-            <div className="text-[11px] text-zinc-400 mt-1">Parallel Firecracker workers</div>
-          </div>
-          <div className="p-5 rounded-2xl border border-white/[0.08] surface-glass">
-            <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Remediation Mode</div>
-            <div className="text-2xl sm:text-3xl font-bold text-amber-400 tracking-tight mt-1">Auto-PR</div>
-            <div className="text-[11px] text-zinc-400 mt-1">Verified Git diff generation</div>
-          </div>
-        </div>
-
-        {/* Ecosystem Compatibility Strip */}
-        <div className="mt-14 pt-8 border-t border-white/[0.06] max-w-4xl mx-auto">
-          <div className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 mb-4">
-            Native Integration With Modern Engineering Stacks
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-xs font-mono text-zinc-400">
-            <span className="px-3 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02]">Anthropic Claude 3.7 Sonnet</span>
-            <span className="px-3 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02]">Playwright Headless Chromium</span>
-            <span className="px-3 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02]">GitHub Actions CI/CD</span>
-            <span className="px-3 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02]">Vercel Preview Webhooks</span>
-            <span className="px-3 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02]">Firecracker Micro-VMs</span>
-          </div>
+        {/* Facts (things that are true of the repository, not marketing metrics) */}
+        <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto text-left">
+          {[
+            ['Model', MODEL_ID],
+            ['Tool', TOOLSET_ID],
+            ['Browser', 'Playwright Chromium'],
+            ['License', 'MIT']
+          ].map(([label, value]) => (
+            <div key={label} className="p-4 rounded-2xl border border-white/[0.08] surface-glass">
+              <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">{label}</div>
+              <div className="text-sm font-semibold text-white mt-1 font-mono break-all">{value}</div>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* 4-Stage Autonomous Pipeline Section (#how-it-works) */}
+      {/* How it works */}
       <section id="how-it-works" className="relative z-10 py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/[0.07]">
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-500/20 bg-orange-500/10 text-orange-400 text-[11px] font-mono font-semibold uppercase tracking-wider mb-3">
-            AUTONOMOUS EXECUTION PIPELINE
-          </div>
-          <h2 className="text-2xl sm:text-4xl font-bold text-white tracking-tight">
-            From PR Webhook to Verified Bugfix in Four Stages
-          </h2>
+          <div className={pill}>How it works</div>
+          <h2 className="text-2xl sm:text-4xl font-bold text-white tracking-tight">One loop, four moving parts</h2>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="p-5 rounded-2xl border border-white/[0.08] surface-glass relative">
-            <div className="text-[11px] font-mono font-bold text-orange-400 mb-2">STAGE 01 // SANDBOX</div>
-            <h3 className="text-sm font-bold text-white mb-1.5">Ephemeral Micro-VM Boot</h3>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              Every Git push triggers an isolated headless Chromium worker at 1440x900 or Mobile DPR 3x resolution.
-            </p>
-          </div>
-          <div className="p-5 rounded-2xl border border-white/[0.08] surface-glass relative">
-            <div className="text-[11px] font-mono font-bold text-orange-400 mb-2">STAGE 02 // PERCEPTION</div>
-            <h3 className="text-sm font-bold text-white mb-1.5">Claude Computer Use Loop</h3>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              Claude 3.7 Sonnet inspects viewport frames and dispatches coordinate actions (`mouse_move`, `left_click`, `type`).
-            </p>
-          </div>
-          <div className="p-5 rounded-2xl border border-white/[0.08] surface-glass relative">
-            <div className="text-[11px] font-mono font-bold text-amber-400 mb-2">STAGE 03 // DIAGNOSIS</div>
-            <h3 className="text-sm font-bold text-white mb-1.5">Extended Thinking &amp; AST</h3>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              When a visual anomaly occurs, Claude cross-references the screenshot with your cached 200k-token repository AST.
-            </p>
-          </div>
-          <div className="p-5 rounded-2xl border border-white/[0.08] surface-glass relative">
-            <div className="text-[11px] font-mono font-bold text-emerald-400 mb-2">STAGE 04 // REMEDIATION</div>
-            <h3 className="text-sm font-bold text-white mb-1.5">Automated GitHub Fix PR</h3>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              SynapseQA commits a minimal, lint-verified CSS/JSX patch to a feature branch and attaches before/after visual diffs.
-            </p>
-          </div>
+          {[
+            ['01', 'Browser', 'Headless Chromium opens your page in a fixed viewport via Playwright.', 'text-orange-400'],
+            ['02', 'Perceive', 'A screenshot goes to Claude with the computer use toolset. Claude answers with tool_use blocks.', 'text-orange-400'],
+            ['03', 'Act', 'We execute each action (click, type, scroll) and return a tool_result with a fresh screenshot.', 'text-amber-400'],
+            ['04', 'Report', 'When Claude stops calling tools it writes a report ending in VERDICT: PASS or FAIL. The CLI exits 0 or 1.', 'text-emerald-400']
+          ].map(([n, title, text, color]) => (
+            <div key={n} className="p-5 rounded-2xl border border-white/[0.08] surface-glass">
+              <div className={`text-[11px] font-mono font-bold mb-2 ${color}`}>STEP {n}</div>
+              <h3 className="text-sm font-bold text-white mb-1.5">{title}</h3>
+              <p className="text-xs text-zinc-400 leading-relaxed">{text}</p>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* Interactive Live Agent Simulator */}
-      <section id="live-simulator" className="relative z-10 py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/[0.07]">
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-500/20 bg-orange-500/10 text-orange-400 text-[11px] font-mono font-semibold uppercase tracking-wider mb-3">
-            <Cpu className="w-3.5 h-3.5" /> INTERACTIVE CLOUD WORKBENCH
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
-            Inspect Claude Computer Use &amp; Prompt Caching Live
-          </h2>
+      {/* Walkthrough */}
+      <section id="walkthrough" className="relative z-10 py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/[0.07]">
+        <div className="text-center max-w-3xl mx-auto mb-10">
+          <div className={pill}><Cpu className="w-3.5 h-3.5" /> Scripted walkthrough</div>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">What a run looks like</h2>
           <p className="mt-3 text-zinc-400 text-sm sm:text-base">
-            Select a test scenario, customize the target URL, or inspect the raw Anthropic `computer_20250124` telemetry and ephemeral cache hit metrics.
+            This panel is a scripted illustration, not a live model call. To see real traces, run the open-source agent with your own key.
           </p>
         </div>
 
-        {/* Simulator Container */}
         <div className="rounded-2xl border border-white/10 surface-elevated overflow-hidden">
-          {/* Top Bar / Mac-like Browser Header */}
           <div className="border-b border-zinc-800 bg-zinc-900/70 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                <div className="w-3 h-3 rounded-full bg-green-500/80" />
-              </div>
-              <span className="text-xs text-zinc-400 font-mono ml-2">SynapseQA Virtual Headless Worker #04 (Linux 64-bit)</span>
+            <div className="flex items-center gap-1 bg-zinc-950 p-1 rounded-lg border border-zinc-800 text-xs">
+              {[['checkout', 'Checkout flow'], ['layout', 'Layout defect (mobile)']].map(([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => pickScenario(key)}
+                  className={`px-3 py-1 rounded-md transition-all cursor-pointer ${selectedScenario === key ? 'bg-orange-500 text-white font-medium shadow' : 'text-zinc-400 hover:text-zinc-200'}`}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
-
-            {/* Scenario Picker */}
-            <div className="flex items-center gap-1 bg-zinc-850 p-1 rounded-lg border border-zinc-750 text-xs">
-              <button
-                onClick={() => { setSelectedScenario('checkout'); setCurrentStepIndex(-1); setIsRunningTest(false); }}
-                className={`px-3 py-1 rounded-md transition-all ${selectedScenario === 'checkout' ? 'bg-orange-500 text-white font-medium shadow' : 'text-zinc-400 hover:text-zinc-200'}`}
-              >
-                1. Checkout & Discount
-              </button>
-              <button
-                onClick={() => { setSelectedScenario('auth'); setCurrentStepIndex(-1); setIsRunningTest(false); }}
-                className={`px-3 py-1 rounded-md transition-all ${selectedScenario === 'auth' ? 'bg-orange-500 text-white font-medium shadow' : 'text-zinc-400 hover:text-zinc-200'}`}
-              >
-                2. Multi-Role RBAC
-              </button>
-              <button
-                onClick={() => { setSelectedScenario('bugfix'); setCurrentStepIndex(-1); setIsRunningTest(false); }}
-                className={`px-3 py-1 rounded-md transition-all ${selectedScenario === 'bugfix' ? 'bg-orange-500 text-white font-medium shadow' : 'text-zinc-400 hover:text-zinc-200'}`}
-              >
-                3. Bug Discovery & Fix PR
-              </button>
-            </div>
-
             <button
-              onClick={runSimulation}
-              disabled={isRunningTest}
-              className={`px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
-                isRunningTest
-                  ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
-                  : 'bg-orange-500 hover:bg-orange-600 text-white shadow-md shadow-orange-500/20'
-              }`}
+              onClick={runWalkthrough}
+              disabled={isRunning}
+              className={`px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all ${isRunning ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600 text-white shadow-md shadow-orange-500/20 cursor-pointer'}`}
             >
-              {isRunningTest ? (
-                <>
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Claude Executing...
-                </>
-              ) : (
-                <>
-                  <Play className="w-3.5 h-3.5 fill-current" /> Run Test Agent
-                </>
-              )}
+              {isRunning ? (<><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Playing…</>) : (<><Play className="w-3.5 h-3.5 fill-current" /> Play walkthrough</>)}
             </button>
           </div>
 
-          {/* Simulator Content: Two columns (Agent Screen & Execution Telemetry) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[460px]">
-            {/* Left: Virtual Screen Viewport */}
-            <div className="lg:col-span-7 p-6 border-b lg:border-b-0 lg:border-r border-zinc-800 bg-zinc-950 flex flex-col justify-between">
-              <div>
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-400 mb-3">
-                  <div className="flex items-center gap-2 flex-1 min-w-[240px]">
-                    <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
-                    <span className="text-zinc-500 shrink-0">Target URL:</span>
-                    <input
-                      type="text"
-                      value={targetUrl}
-                      onChange={(e) => setTargetUrl(e.target.value)}
-                      className="bg-zinc-900 border border-zinc-800 rounded px-2 py-0.5 font-mono text-xs text-zinc-200 w-full max-w-xs focus:outline-none focus:border-orange-500"
-                    />
-                  </div>
-                  <span className="font-mono text-[11px] text-orange-400/90 bg-orange-950/30 border border-orange-500/20 px-2 py-0.5 rounded">
-                    claude-3-7-sonnet-20250219 (computer_20250124)
-                  </span>
+          <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[400px]">
+            {/* Left: mock page */}
+            <div className="lg:col-span-6 p-6 border-b lg:border-b-0 lg:border-r border-zinc-800 bg-zinc-950">
+              <div className="relative rounded-xl border border-white/10 bg-[#121316] p-5 overflow-hidden h-full min-h-[300px]">
+                <div className="flex items-center justify-between border-b border-white/[0.07] pb-3 mb-4 text-[11px] font-mono text-zinc-400">
+                  <span>example-store.test</span>
+                  <span>{selectedScenario === 'layout' ? '390x844' : '1440x900'}</span>
                 </div>
 
-                {/* Simulated Web Application Display */}
-                <div className="relative rounded-xl border border-white/10 bg-[#121316] p-5 shadow-inner overflow-hidden">
-                  {/* Top HUD overlay showing Vision Coordinate Mapping */}
-                  <div className="flex items-center justify-between border-b border-white/[0.07] pb-3 mb-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-md bg-gradient-to-br from-orange-500/30 to-amber-500/20 border border-orange-500/40 flex items-center justify-center text-[10px] font-mono font-bold text-orange-300">AC</div>
-                      <span className="text-xs font-semibold text-zinc-200">Acme Cloud Store</span>
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-white/[0.06] text-zinc-400">
-                        1440x900 @1x
-                      </span>
+                {selectedScenario === 'checkout' ? (
+                  <div className="space-y-3 text-xs">
+                    <div className="p-3 rounded-lg bg-zinc-900/90 border border-white/[0.06] flex justify-between items-center">
+                      <span className="font-medium text-white">Team plan &times; 5 seats</span>
+                      <span className="font-mono font-semibold text-zinc-200">$120.00</span>
                     </div>
-                    <div className="flex items-center gap-3 text-[11px] font-mono text-zinc-400">
-                      <span className="text-orange-400">bbox: [842, 310]</span>
-                      <span className="text-emerald-400">conf: 0.998</span>
-                    </div>
-                  </div>
-
-                  {/* Simulated App Page based on scenario */}
-                  {selectedScenario === 'checkout' && (
-                    <div className="space-y-3 text-xs">
-                      <div className="p-3 rounded-lg bg-zinc-900/90 border border-white/[0.06] flex justify-between items-center">
-                        <div>
-                          <div className="font-medium text-white">Pro Enterprise Plan (Monthly)</div>
-                          <div className="text-[11px] text-zinc-500">Seats: 5 users &bull; Annual billing option</div>
-                        </div>
-                        <div className="text-right font-mono font-semibold text-zinc-200">$120.00</div>
-                      </div>
-
-                      <div className="p-3 rounded-lg bg-zinc-900/60 border border-orange-500/30 ring-1 ring-orange-500/20 space-y-2 relative">
-                        <div className="absolute -top-2 right-2 px-1.5 py-0.2 bg-orange-500 text-[9px] font-mono font-bold text-white rounded">
-                          VISION TARGET #01
-                        </div>
-                        <label className="text-[11px] text-zinc-400 block">Promo Code</label>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            readOnly
-                            value={currentStepIndex >= 3 ? "SPRING25" : ""}
-                            placeholder="Enter promo code"
-                            className="w-full bg-zinc-950 border border-zinc-750 rounded px-2.5 py-1 text-xs font-mono text-zinc-200 focus:outline-none"
-                          />
-                          <button className={`px-3 py-1 rounded text-xs font-medium ${currentStepIndex >= 3 ? 'bg-emerald-600 text-white' : 'bg-zinc-800 text-zinc-400'}`}>
-                            {currentStepIndex >= 3 ? 'Applied' : 'Apply'}
-                          </button>
-                        </div>
-                        {currentStepIndex >= 3 && (
-                          <div className="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
-                            <CheckCircle2 className="w-3 h-3" /> Coupon "SPRING25" applied: -$30.00
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="border-t border-white/[0.07] pt-2.5 flex justify-between text-xs font-semibold">
-                        <span className="text-zinc-400">Total Calculated:</span>
-                        <span className="text-white font-mono text-sm">
-                          {currentStepIndex >= 3 ? '$90.00' : '$120.00'}
-                        </span>
+                    <div className="p-3 rounded-lg bg-zinc-900/60 border border-orange-500/30 space-y-2">
+                      <label className="text-[11px] text-zinc-400 block">Promo code</label>
+                      <div className="flex gap-2">
+                        <input readOnly value={stepIndex >= 2 ? 'SPRING25' : ''} placeholder="Enter code" className="w-full bg-zinc-950 border border-zinc-700 rounded px-2.5 py-1 text-xs font-mono text-zinc-200 focus:outline-none" />
+                        <span className={`px-3 py-1 rounded text-xs font-medium ${stepIndex >= 3 ? 'bg-emerald-600 text-white' : 'bg-zinc-800 text-zinc-400'}`}>{stepIndex >= 3 ? 'Applied' : 'Apply'}</span>
                       </div>
                     </div>
-                  )}
-
-                  {selectedScenario === 'auth' && (
-                    <div className="space-y-3 text-xs">
-                      <div className="p-3 rounded-lg bg-zinc-900 border border-white/[0.07]">
-                        <div className="text-zinc-300 font-medium mb-1">Active Team Members (2/10)</div>
-                        <div className="text-[11px] text-zinc-500">Testing Role Boundaries and Invite tokens</div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-[11px]">
-                        <div className="p-2.5 rounded bg-zinc-950 border border-white/[0.07]">
-                          <span className="text-zinc-400 block">Current User:</span>
-                          <span className="font-semibold text-orange-400 font-mono">admin@acme.inc</span>
-                          <span className="text-[10px] text-emerald-400 block mt-1">Role: SuperAdmin</span>
-                        </div>
-                        <div className="p-2.5 rounded bg-zinc-950 border border-orange-500/30">
-                          <span className="text-zinc-400 block">Invited Agent:</span>
-                          <span className="font-semibold text-zinc-300 font-mono">qa-worker@agent.io</span>
-                          <span className="text-[10px] text-blue-400 block mt-1">Role: Editor (Verified)</span>
-                        </div>
-                      </div>
+                    <div className="border-t border-white/[0.07] pt-2.5 flex justify-between font-semibold">
+                      <span className="text-zinc-400">Total</span>
+                      <span className="text-white font-mono text-sm">{stepIndex >= 3 ? '$90.00' : '$120.00'}</span>
                     </div>
-                  )}
-
-                  {selectedScenario === 'bugfix' && (
-                    <div className="space-y-3 text-xs">
-                      <div className="p-2.5 rounded-lg bg-amber-950/30 border border-amber-500/40 text-amber-200">
-                        <div className="font-semibold flex items-center gap-1">
-                          <AlertTriangle className="w-3.5 h-3.5 text-amber-400" /> Layout Regression Detected (Mobile DPR 3x)
-                        </div>
-                        <div className="text-[11px] text-amber-300/80 mt-1">
-                          Bottom CTA button overlaps fixed iOS navigation bar by 18px.
-                        </div>
-                      </div>
-                      {currentStepIndex >= 3 && (
-                        <div className="p-2.5 rounded-lg bg-emerald-950/30 border border-emerald-500/40 text-emerald-200 text-[11px] font-mono">
-                          <div className="text-emerald-400 font-semibold mb-1">// Verified AST Patch Committed (PR #142):</div>
-                          <div className="text-red-400">- className="checkout-footer fixed bottom-0"</div>
-                          <div className="text-emerald-400">+ className="checkout-footer fixed bottom-0 pb-safe"</div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Virtual cursor representing Claude Computer Use */}
-                  {isRunningTest && (
-                    <div
-                      className="absolute pointer-events-none transition-all duration-700 ease-out z-30"
-                      style={{
-                        top: currentStepIndex === 0 ? '40%' : currentStepIndex === 1 ? '55%' : currentStepIndex === 2 ? '70%' : '60%',
-                        left: currentStepIndex === 0 ? '30%' : currentStepIndex === 1 ? '60%' : currentStepIndex === 2 ? '80%' : '50%'
-                      }}
-                    >
-                      <div className="flex items-center gap-1">
-                        <MousePointer className="w-5 h-5 text-orange-400 fill-orange-500 drop-shadow-md" />
-                        <span className="px-1.5 py-0.5 rounded bg-orange-500 text-[9px] text-white font-mono font-bold shadow">
-                          computer_20250124
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Live Extended Thinking Monologue Bar */}
-                <div className="mt-3 px-3 py-2 rounded-lg border border-white/[0.06] bg-black/50 font-mono text-[11px] text-zinc-400 flex items-center justify-between gap-2">
-                  <div className="truncate">
-                    <span className="text-orange-400 font-semibold">&lt;thinking&gt;</span>{' '}
-                    {isRunningTest
-                      ? 'Analyzing viewport DOM bounding boxes and verifying visual contrast ratios...'
-                      : 'Ready: Ephemeral AST cache warm (48,200 tokens cached). Awaiting execution trigger.'}
-                    {' '}<span className="text-orange-400 font-semibold">&lt;/thinking&gt;</span>
-                  </div>
-                  <span className="text-[10px] text-zinc-500 shrink-0">budget: 4096 tok</span>
-                </div>
-              </div>
-
-              {/* Natural Language Prompt Input */}
-              <div className="mt-4 pt-4 border-t border-zinc-850">
-                <label className="text-xs font-medium text-zinc-400 block mb-1.5 flex items-center gap-1">
-                  <Terminal className="w-3.5 h-3.5 text-orange-400" /> Custom Test Prompt (Plain English):
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={customPrompt}
-                    onChange={(e) => setCustomPrompt(e.target.value)}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-orange-500"
-                  />
-                  <button
-                    onClick={runSimulation}
-                    className="px-3 py-2 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold shrink-0 cursor-pointer"
-                  >
-                    Send to Claude
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Right: Real-time Telemetry & Claude Thought Stream */}
-            <div className="lg:col-span-5 p-6 bg-zinc-900/40 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between pb-3 border-b border-zinc-800 mb-4">
-                  <div className="flex items-center gap-1 bg-zinc-950 p-1 rounded-lg border border-zinc-800 text-[11px]">
-                    <button
-                      onClick={() => setTelemetryTab('stream')}
-                      className={`px-2.5 py-1 rounded transition-colors cursor-pointer ${telemetryTab === 'stream' ? 'bg-orange-500/20 text-orange-300 font-semibold border border-orange-500/30' : 'text-zinc-400 hover:text-zinc-200'}`}
-                    >
-                      Execution Stream
-                    </button>
-                    <button
-                      onClick={() => setTelemetryTab('api')}
-                      className={`px-2.5 py-1 rounded transition-colors cursor-pointer ${telemetryTab === 'api' ? 'bg-orange-500/20 text-orange-300 font-semibold border border-orange-500/30' : 'text-zinc-400 hover:text-zinc-200'}`}
-                    >
-                      Anthropic API &amp; Cache Trace
-                    </button>
-                  </div>
-                  <span className="text-[11px] font-mono text-emerald-400">Cache Hit: 94.2%</span>
-                </div>
-
-                {telemetryTab === 'stream' ? (
-                  <div className="space-y-3">
-                    {scenarios[selectedScenario].steps.map((step, idx) => {
-                      const isPassed = currentStepIndex > idx || (!isRunningTest && currentStepIndex === -1);
-                      const isCurrent = isRunningTest && currentStepIndex === idx;
-
-                      return (
-                        <div
-                          key={idx}
-                          className={`p-2.5 rounded-lg border transition-all text-xs ${
-                            isCurrent
-                              ? 'bg-orange-950/20 border-orange-500/50 shadow-sm'
-                              : isPassed
-                              ? 'bg-zinc-950/60 border-zinc-800/80'
-                              : 'bg-zinc-950/20 border-zinc-850 opacity-50'
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex items-center gap-2">
-                              {isPassed ? (
-                                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                              ) : isCurrent ? (
-                                <RefreshCw className="w-4 h-4 text-orange-400 animate-spin shrink-0" />
-                              ) : (
-                                <div className="w-4 h-4 rounded-full border border-zinc-700 shrink-0" />
-                              )}
-                              <span className={`font-semibold ${isCurrent ? 'text-orange-300' : isPassed ? 'text-zinc-200' : 'text-zinc-500'}`}>
-                                {step.title}
-                              </span>
-                            </div>
-                            <span className="font-mono text-[10px] text-zinc-500">{step.latency}</span>
-                          </div>
-                          <p className="mt-1 text-[11px] text-zinc-400 pl-6 leading-relaxed">
-                            {step.detail}
-                          </p>
-                        </div>
-                      );
-                    })}
                   </div>
                 ) : (
-                  <div className="space-y-3 font-mono text-[11px]">
-                    <div className="p-3 rounded-lg bg-black/70 border border-zinc-800 text-zinc-300 overflow-x-auto">
-                      <div className="text-orange-400 font-semibold mb-1">// Anthropic Beta Messages Request</div>
-                      <pre className="text-[10px] leading-relaxed text-zinc-300">{`POST https://api.anthropic.com/v1/messages
-anthropic-beta: computer-use-2025-01-24, prompt-caching-2024-07-31
-
-{
-  "model": "claude-3-7-sonnet-20250219",
-  "thinking": { "type": "enabled", "budget_tokens": 4096 },
-  "tools": [{
-    "type": "computer_20250124",
-    "name": "computer",
-    "display_width_px": 1440,
-    "display_height_px": 900,
-    "cache_control": { "type": "ephemeral" }
-  }]
-}`}</pre>
-                    </div>
-                    <div className="p-3 rounded-lg bg-emerald-950/20 border border-emerald-500/30 text-emerald-200">
-                      <div className="font-semibold text-emerald-400 mb-1">// Ephemeral Prompt Cache Telemetry</div>
-                      <div className="grid grid-cols-2 gap-2 text-[10px]">
-                        <div>cache_read_input_tokens: <strong className="text-white">48,200</strong></div>
-                        <div>uncached_input_tokens: <strong className="text-white">1,420</strong></div>
-                        <div>thinking_tokens_used: <strong className="text-white">640</strong></div>
-                        <div>latency_reduction: <strong className="text-emerald-400">-79.4%</strong></div>
+                  <div className="space-y-3 text-xs">
+                    <div className="p-3 rounded-lg bg-zinc-900/90 border border-white/[0.06] text-zinc-300">Order summary &mdash; 3 items</div>
+                    <div className={`p-2.5 rounded-lg border text-[11px] ${stepIndex >= 2 ? 'bg-amber-950/30 border-amber-500/40 text-amber-200' : 'bg-zinc-900/40 border-white/[0.06] text-zinc-500'}`}>
+                      <div className="font-semibold flex items-center gap-1">
+                        <AlertTriangle className={`w-3.5 h-3.5 ${stepIndex >= 2 ? 'text-amber-400' : 'text-zinc-600'}`} />
+                        {stepIndex >= 2 ? 'Primary button overlaps the fixed bottom bar' : 'Checking footer…'}
                       </div>
                     </div>
                   </div>
                 )}
+
+                {isRunning && (
+                  <div
+                    className="absolute pointer-events-none transition-all duration-700 ease-out z-30"
+                    style={{ top: `${30 + (stepIndex % 4) * 14}%`, left: `${25 + (stepIndex % 3) * 22}%` }}
+                  >
+                    <MousePointer className="w-5 h-5 text-orange-400 fill-orange-500 drop-shadow-md" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right: trace */}
+            <div className="lg:col-span-6 p-6 bg-zinc-900/40">
+              <div className="flex items-center gap-1 bg-zinc-950 p-1 rounded-lg border border-zinc-800 text-[11px] w-fit mb-4">
+                {[['stream', 'Step trace'], ['api', 'Request shape']].map(([key, label]) => (
+                  <button
+                    key={key}
+                    onClick={() => setTelemetryTab(key)}
+                    className={`px-2.5 py-1 rounded transition-colors cursor-pointer ${telemetryTab === key ? 'bg-orange-500/20 text-orange-300 font-semibold border border-orange-500/30' : 'text-zinc-400 hover:text-zinc-200'}`}
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
 
-              {/* Bottom CI Integration Status */}
-              <div className="mt-6 pt-3 border-t border-zinc-800 text-[11px] text-zinc-400 flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <GitPullRequest className="w-3.5 h-3.5 text-zinc-300" /> GitHub Actions &amp; Vercel Webhook Ready
-                </span>
-                <span className="text-emerald-400 font-mono font-medium">Synced</span>
+              {telemetryTab === 'stream' ? (
+                <div className="space-y-2.5">
+                  {steps.map((step, idx) => {
+                    const reached = stepIndex > idx || (!isRunning && stepIndex === steps.length - 1);
+                    const current = isRunning && stepIndex === idx;
+                    return (
+                      <div key={step.title} className={`p-2.5 rounded-lg border text-xs transition-all ${current ? 'bg-orange-950/20 border-orange-500/50' : reached ? 'bg-zinc-950/60 border-zinc-800/80' : 'bg-zinc-950/20 border-zinc-800/50 opacity-50'}`}>
+                        <div className="flex items-center gap-2">
+                          {reached || (current && step.done) ? (
+                            step.warn ? <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" /> : <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                          ) : current ? (
+                            <RefreshCw className="w-4 h-4 text-orange-400 animate-spin shrink-0" />
+                          ) : (
+                            <Circle className="w-4 h-4 text-zinc-700 shrink-0" />
+                          )}
+                          <span className={`font-mono font-semibold ${current ? 'text-orange-300' : reached ? 'text-zinc-200' : 'text-zinc-500'}`}>{step.title}</span>
+                        </div>
+                        <p className="mt-1 text-[11px] text-zinc-400 pl-6 leading-relaxed">{step.detail}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="p-3 rounded-lg bg-black/70 border border-zinc-800 font-mono text-[11px] text-zinc-300 overflow-x-auto">
+                  <div className="text-orange-400 font-semibold mb-1">{'// What agent/computer_use.py sends each turn'}</div>
+                  <pre className="text-[10px] leading-relaxed">{`client.messages.create(
+  model="${MODEL_ID}",
+  tools=[{"type": "${TOOLSET_ID}"}],
+  system=[{ ..., "cache_control": {"type": "ephemeral"} }],
+  messages=[goal, assistant tool_use,
+            user tool_result(screenshot), ...]
+)`}</pre>
+                </div>
+              )}
+
+              <div className="mt-5 pt-3 border-t border-zinc-800 text-[11px] text-zinc-400 flex items-center gap-1.5">
+                <GitPullRequest className="w-3.5 h-3.5 text-zinc-300" /> Illustration only &mdash; no tokens, latency or cache numbers are claimed here.
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Feature Architecture: Why Claude Engine Wins */}
-      <section id="architecture" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/[0.07]">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-500/20 bg-orange-500/10 text-orange-400 text-[11px] font-mono font-semibold uppercase tracking-wider mb-3">
-            <Layers className="w-3.5 h-3.5" /> ANTHROPIC API PRIMITIVES
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
-            Built From the Ground Up on Claude's Unique Capabilities
-          </h2>
-          <p className="mt-3 text-zinc-400 text-sm sm:text-base">
-            Generic LLMs hallucinate brittle DOM selectors. SynapseQA is architected directly on Anthropic's flagship multimodal and caching primitives.
-          </p>
+      {/* Status */}
+      <section id="status" className="relative z-10 py-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto border-t border-white/[0.07]">
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <div className={pill}>Honest status</div>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">What exists today, and what doesn&apos;t</h2>
+          <p className="mt-3 text-zinc-400 text-sm">We have not published cost, latency or accuracy figures because we have not measured them yet.</p>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Card 1 */}
-          <div className="p-7 rounded-2xl border border-white/[0.08] surface-glass hover:border-orange-500/40 transition-all flex flex-col justify-between">
-            <div>
-              <div className="w-11 h-11 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-orange-400 mb-5">
-                <Eye className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-bold text-white mb-2">Native Computer Use (`computer_20250124`)</h3>
-              <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed mb-5">
-                Unlike legacy Selenium or Playwright, Claude perceives raw viewport pixels, calculates sub-pixel click coordinates, and catches z-index overlaps that DOM scrapers miss.
-              </p>
-            </div>
-            <div className="text-[11px] text-orange-300 font-mono bg-black/50 p-3 rounded-xl border border-white/[0.07]">
-              tool_use: computer (action: "left_click", coord: [842, 310])
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="p-6 rounded-2xl border border-emerald-500/20 surface-glass">
+            <div className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400 mb-4">In the repo today</div>
+            <ul className="space-y-3 text-xs text-zinc-300">
+              {works.map((item) => (
+                <li key={item} className="flex gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" />{item}</li>
+              ))}
+            </ul>
           </div>
-
-          {/* Card 2 */}
-          <div className="p-7 rounded-2xl border border-white/[0.08] surface-glass hover:border-orange-500/40 transition-all flex flex-col justify-between">
-            <div>
-              <div className="w-11 h-11 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-5">
-                <Code2 className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-bold text-white mb-2">200k Context + Ephemeral Caching</h3>
-              <p className="text-sm text-zinc-400 leading-relaxed mb-5">
-                Your repository AST and design system tokens are pinned in Anthropic's Ephemeral Prompt Cache (`cache_control`), slashing token costs by 90% and latency by 80%.
-              </p>
-            </div>
-            <div className="text-[11px] text-amber-300 font-mono bg-black/50 p-3 rounded-xl border border-white/[0.07]">
-              cache_read_input_tokens: 48,200 &bull; Hit Ratio: 94.2%
-            </div>
-          </div>
-
-          {/* Card 3 */}
-          <div className="p-7 rounded-2xl border border-white/[0.08] surface-glass hover:border-orange-500/40 transition-all flex flex-col justify-between">
-            <div>
-              <div className="w-11 h-11 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-5">
-                <Shield className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-bold text-white mb-2">Extended Thinking Root-Cause Analysis</h3>
-              <p className="text-sm text-zinc-400 leading-relaxed mb-5">
-                Before opening a GitHub Pull Request, Claude allocates up to 4,096 thinking tokens to verify CSS layout constraints, ARIA compliance, and responsive breakpoints.
-              </p>
-            </div>
-            <div className="text-[11px] text-emerald-300 font-mono bg-black/50 p-3 rounded-xl border border-white/[0.07]">
-              thinking: &#123; type: "enabled", budget_tokens: 4096 &#125;
-            </div>
+          <div className="p-6 rounded-2xl border border-white/[0.08] surface-glass">
+            <div className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-400 mb-4">Next</div>
+            <ul className="space-y-3 text-xs text-zinc-400">
+              {planned.map((item) => (
+                <li key={item} className="flex gap-2"><Circle className="w-4 h-4 text-zinc-600 shrink-0" />{item}</li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>
 
-      {/* ROI Calculator Section */}
-      <section id="roi-calculator" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/[0.07]">
-        <div className="rounded-3xl border border-white/10 surface-elevated p-8 sm:p-12">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-            {/* Left Sliders */}
-            <div className="lg:col-span-7 space-y-8">
-              <div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-500/20 bg-orange-500/10 text-orange-400 text-[11px] font-mono font-semibold uppercase tracking-wider mb-3">
-                  <Sliders className="w-3.5 h-3.5" /> ENGINEERING ROI MODEL
-                </div>
-                <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-                  Quantify Your QA Engineering Savings
-                </h2>
-                <p className="mt-2 text-zinc-400 text-sm">
-                  Product squads spend 18–25% of sprint capacity debugging flaky end-to-end tests. Model your team's reclaimed velocity with SynapseQA.
-                </p>
-              </div>
-
-              {/* Slider 1 */}
-              <div>
-                <div className="flex justify-between text-xs sm:text-sm font-medium mb-2">
-                  <span className="text-zinc-300">Software Engineers on Team</span>
-                  <span className="text-orange-400 font-mono font-bold text-sm">{devCount} engineers</span>
-                </div>
-                <input
-                  type="range"
-                  min="2"
-                  max="50"
-                  value={devCount}
-                  onChange={(e) => setDevCount(Number(e.target.value))}
-                  className="w-full accent-orange-500 cursor-pointer h-2 bg-zinc-800 rounded-lg"
-                />
-              </div>
-
-              {/* Slider 2 */}
-              <div>
-                <div className="flex justify-between text-xs sm:text-sm font-medium mb-2">
-                  <span className="text-zinc-300">Production Deploys Per Week</span>
-                  <span className="text-orange-400 font-mono font-bold text-sm">{releasesPerWeek} deploys/wk</span>
-                </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="20"
-                  value={releasesPerWeek}
-                  onChange={(e) => setReleasesPerWeek(Number(e.target.value))}
-                  className="w-full accent-orange-500 cursor-pointer h-2 bg-zinc-800 rounded-lg"
-                />
-              </div>
-
-              {/* Slider 3 */}
-              <div>
-                <div className="flex justify-between text-xs sm:text-sm font-medium mb-2">
-                  <span className="text-zinc-300">Blended Engineering Hourly Cost</span>
-                  <span className="text-orange-400 font-mono font-bold text-sm">${hourlyRate}/hr</span>
-                </div>
-                <input
-                  type="range"
-                  min="30"
-                  max="150"
-                  step="5"
-                  value={hourlyRate}
-                  onChange={(e) => setHourlyRate(Number(e.target.value))}
-                  className="w-full accent-orange-500 cursor-pointer h-2 bg-zinc-800 rounded-lg"
-                />
-              </div>
-            </div>
-
-            {/* Right Result Card */}
-            <div className="lg:col-span-5 p-8 rounded-2xl border border-orange-500/30 bg-gradient-to-b from-orange-950/25 to-zinc-950/90 backdrop-blur-md text-center shadow-2xl">
-              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-orange-400 mb-1">
-                Projected Monthly Net Savings
-              </div>
-              <div className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight my-4 font-mono">
-                ${dollarsSavedMonthly.toLocaleString()}
-                <span className="text-xs text-zinc-400 font-sans font-normal"> / mo</span>
-              </div>
-              <div className="text-xs sm:text-sm text-zinc-300 mb-6 font-medium">
-                Reclaiming <strong className="text-orange-400 font-mono">{hoursSavedMonthly} hrs</strong> of senior engineering time monthly.
-              </div>
-
-              <div className="p-4 rounded-xl bg-black/50 border border-white/[0.07] text-left space-y-2.5 text-xs text-zinc-300">
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-emerald-400 shrink-0" /> 100% CI/CD automated PR verification
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-emerald-400 shrink-0" /> Zero XPath / CSS selector maintenance
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-emerald-400 shrink-0" /> Ephemeral Prompt Caching (-90% API cost)
-                </div>
-              </div>
-
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="mt-6 w-full py-3 rounded-xl bg-gradient-to-b from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-orange-500/25 border border-orange-400/30 transition-all cursor-pointer"
-              >
-                Claim Free Pilot Access &rarr;
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Comparison Matrix */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/[0.07]">
+      {/* Why Claude */}
+      <section id="why-claude" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/[0.07]">
         <div className="text-center max-w-3xl mx-auto mb-14">
-          <h2 className="text-3xl font-bold text-white tracking-tight">
-            Architectural Comparison
-          </h2>
-          <p className="mt-2 text-zinc-400 text-sm">
-            Why high-velocity teams replace brittle DOM test runners with Claude Computer Use agents.
-          </p>
+          <div className={pill}><Layers className="w-3.5 h-3.5" /> Why Claude</div>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">Built on the parts of the API that make this possible</h2>
         </div>
-
-        <div className="rounded-2xl border border-white/10 surface-glass overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm border-collapse">
-              <thead>
-                <tr className="border-b border-white/10 text-[11px] font-mono text-zinc-400 uppercase bg-black/40">
-                  <th className="py-4 px-6 font-semibold">Capability</th>
-                  <th className="py-4 px-6 font-semibold text-orange-400 bg-orange-500/[0.07]">SynapseQA (Claude 3.7)</th>
-                  <th className="py-4 px-6 font-semibold">Cypress / Playwright</th>
-                  <th className="py-4 px-6 font-semibold">Manual QA Squad</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/[0.06] text-zinc-300">
-                <tr>
-                  <td className="py-4 px-6 font-medium text-white">Test Authoring</td>
-                  <td className="py-4 px-6 text-orange-300 font-semibold bg-orange-500/[0.04]">Plain English Intent</td>
-                  <td className="py-4 px-6 text-zinc-400"> Fragile CSS / XPath Selectors</td>
-                  <td className="py-4 px-6 text-zinc-400">Manual Test Plans</td>
-                </tr>
-                <tr>
-                  <td className="py-4 px-6 font-medium text-white">UI Refactor Resilience</td>
-                  <td className="py-4 px-6 text-emerald-400 font-semibold bg-orange-500/[0.04]">100% (Visual Perception)</td>
-                  <td className="py-4 px-6 text-red-400">Breaks on DOM / Class rename</td>
-                  <td className="py-4 px-6 text-zinc-400">High but Slow</td>
-                </tr>
-                <tr>
-                  <td className="py-4 px-6 font-medium text-white">Median Execution Time</td>
-                  <td className="py-4 px-6 text-orange-300 font-mono font-semibold bg-orange-500/[0.04]">&lt; 15s (Parallel VMs)</td>
-                  <td className="py-4 px-6 text-zinc-400">Fast (until selector breaks)</td>
-                  <td className="py-4 px-6 text-red-400">Hours to Days</td>
-                </tr>
-                <tr>
-                  <td className="py-4 px-6 font-medium text-white">Automated Bugfix PRs</td>
-                  <td className="py-4 px-6 text-emerald-400 font-semibold bg-orange-500/[0.04]">Verified AST Git Diff</td>
-                  <td className="py-4 px-6 text-red-400">None (Stacktrace only)</td>
-                  <td className="py-4 px-6 text-red-400">Manual Jira Ticket</td>
-                </tr>
-                <tr>
-                  <td className="py-4 px-6 font-medium text-white">Cost per 1,000 Journeys</td>
-                  <td className="py-4 px-6 text-orange-300 font-mono font-semibold bg-orange-500/[0.04]">~$3.20 (Prompt Cached)</td>
-                  <td className="py-4 px-6 text-zinc-400">High CI Runner Bill</td>
-                  <td className="py-4 px-6 text-red-400">$3,000+</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/[0.07]">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-500/20 bg-orange-500/10 text-orange-400 text-[11px] font-mono font-semibold uppercase tracking-wider mb-3">
-            <DollarSign className="w-3.5 h-3.5" /> PREDICTABLE TIERS
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
-            Transparent Pricing for High-Velocity Teams
-          </h2>
-          <p className="mt-3 text-zinc-400 text-sm sm:text-base">
-            Start free with our open CLI runner, or scale effortlessly on our managed Firecracker cluster.
-          </p>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Plan 1 */}
-          <div className="p-8 rounded-2xl border border-white/[0.08] surface-glass flex flex-col justify-between">
-            <div>
-              <div className="text-base font-bold text-white">Developer &amp; OSS</div>
-              <div className="text-xs text-zinc-400 mt-1">For open-source &amp; early prototypes</div>
-              <div className="text-3xl font-extrabold text-white my-6 font-mono">$0 <span className="text-xs text-zinc-400 font-sans font-normal">/ forever</span></div>
-              <ul className="space-y-3 text-xs text-zinc-300">
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> 100 Autonomous Agent Runs/mo</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> Claude 3.7 Sonnet CLI Runner</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> Ephemeral Prompt Caching enabled</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> Community Discord &amp; GitHub support</li>
-              </ul>
+          {[
+            [Eye, 'Computer use toolset', `One {"type": "${TOOLSET_ID}"} entry gives Claude screenshot, click, type and scroll tools. The agent decides from pixels, so a renamed CSS class does not break a test.`],
+            [Terminal, 'Plain-English goals', 'The test is a sentence, not a script. That makes it cheap to write exploratory and smoke checks that would never justify a hand-coded suite.'],
+            [Code2, 'Prompt caching', 'Every turn repeats the same system prompt, so it is marked cache_control: ephemeral. The agent reports real cache_read_input_tokens from the API response after each run.']
+          ].map(([Icon, title, text]) => (
+            <div key={title} className="p-7 rounded-2xl border border-white/[0.08] surface-glass hover:border-orange-500/40 transition-all">
+              <div className="w-11 h-11 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-orange-400 mb-5">
+                <Icon className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-white mb-2">{title}</h3>
+              <p className="text-sm text-zinc-400 leading-relaxed">{text}</p>
             </div>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="mt-8 w-full py-2.5 rounded-xl border border-white/10 hover:border-white/25 bg-white/[0.03] hover:bg-white/[0.07] text-white font-medium text-xs transition-all cursor-pointer"
-            >
-              Deploy Free CLI
-            </button>
-          </div>
-
-          {/* Plan 2: Featured */}
-          <div className="p-8 rounded-2xl border-2 border-orange-500/80 bg-gradient-to-b from-orange-950/25 to-zinc-950/95 backdrop-blur-md relative flex flex-col justify-between shadow-2xl shadow-orange-500/10">
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-mono font-bold text-[10px] uppercase tracking-wider shadow">
-              Most Popular
-            </div>
-            <div>
-              <div className="text-base font-bold text-white">Startup Pro</div>
-              <div className="text-xs text-zinc-400 mt-1">For shipping SaaS &amp; product engineering teams</div>
-              <div className="text-3xl font-extrabold text-white my-6 font-mono">$99 <span className="text-xs text-zinc-400 font-sans font-normal">/ month</span></div>
-              <ul className="space-y-3 text-xs text-zinc-200">
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> 2,500 Managed Agent Runs/mo</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> Claude 3.7 Sonnet Computer Use + Extended Thinking</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> Automated GitHub Fix PR generation</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> Desktop &amp; Mobile DPR 3x Emulation</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> Priority Webhook Queue &amp; Slack alerts</li>
-              </ul>
-            </div>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="mt-8 w-full py-2.5 rounded-xl bg-gradient-to-b from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold text-xs shadow-lg shadow-orange-500/25 border border-orange-400/30 transition-all cursor-pointer"
-            >
-              Start 14-Day Free Pilot
-            </button>
-          </div>
-
-          {/* Plan 3 */}
-          <div className="p-8 rounded-2xl border border-white/[0.08] surface-glass flex flex-col justify-between">
-            <div>
-              <div className="text-base font-bold text-white">Enterprise VPC</div>
-              <div className="text-xs text-zinc-400 mt-1">For regulated organizations requiring self-hosted runners</div>
-              <div className="text-3xl font-extrabold text-white my-6 font-mono">Custom <span className="text-xs text-zinc-400 font-sans font-normal">/ annual</span></div>
-              <ul className="space-y-3 text-xs text-zinc-300">
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> Unlimited Parallel Firecracker Workers</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> Private VPC / On-Premises Deployment</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> Zero Data Retention (ZDR) Anthropic API</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> Dedicated Forward-Deployed Engineer</li>
-              </ul>
-            </div>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="mt-8 w-full py-2.5 rounded-xl border border-white/10 hover:border-white/25 bg-white/[0.03] hover:bg-white/[0.07] text-white font-medium text-xs transition-all cursor-pointer"
-            >
-              Contact Enterprise Engineering
-            </button>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* FAQ Section */}
+      {/* Comparison */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto border-t border-white/[0.07]">
+        <div className="text-center max-w-3xl mx-auto mb-10">
+          <h2 className="text-3xl font-bold text-white tracking-tight">Where it fits next to Playwright and Cypress</h2>
+          <p className="mt-2 text-zinc-400 text-sm">A complement for exploratory and visual checks, not a replacement for a deterministic regression suite.</p>
+        </div>
+        <div className="rounded-2xl border border-white/10 surface-glass overflow-x-auto">
+          <table className="w-full text-left text-xs sm:text-sm border-collapse">
+            <thead>
+              <tr className="border-b border-white/10 text-[11px] font-mono text-zinc-400 uppercase bg-black/40">
+                <th className="py-4 px-6 font-semibold">&nbsp;</th>
+                <th className="py-4 px-6 font-semibold text-orange-400 bg-orange-500/[0.07]">SynapseQA</th>
+                <th className="py-4 px-6 font-semibold">Scripted (Playwright / Cypress)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/[0.06] text-zinc-300">
+              {[
+                ['Authoring', 'A sentence of English', 'Code with selectors'],
+                ['Survives UI refactors', 'Usually, since it works from what is visible', 'Breaks when selectors change'],
+                ['Visual defects (overlap, clipping)', 'Can notice them', 'Only if you wrote an assertion'],
+                ['Speed and cost per run', 'Slower; each step is a model call', 'Fast and effectively free'],
+                ['Determinism', 'Not guaranteed; the model decides', 'Fully deterministic']
+              ].map(([row, a, b]) => (
+                <tr key={row}>
+                  <td className="py-4 px-6 font-medium text-white">{row}</td>
+                  <td className="py-4 px-6 text-orange-300 bg-orange-500/[0.04]">{a}</td>
+                  <td className="py-4 px-6 text-zinc-400">{b}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* FAQ */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto border-t border-white/[0.07]">
-        <h2 className="text-3xl font-bold text-white text-center mb-12 tracking-tight">Technical FAQ</h2>
+        <h2 className="text-3xl font-bold text-white text-center mb-12 tracking-tight">FAQ</h2>
         <div className="space-y-4">
-          <div className="p-6 rounded-2xl border border-white/[0.08] surface-glass">
-            <h4 className="text-sm font-semibold text-white flex items-center gap-2">
-              <HelpCircle className="w-4 h-4 text-orange-400 shrink-0" /> How is SynapseQA different from Playwright or Cypress?
-            </h4>
-            <p className="mt-2 text-xs sm:text-sm text-zinc-400 leading-relaxed">
-              Playwright and Cypress require engineers to write and maintain brittle CSS/XPath selectors. Whenever a class name or DOM wrapper changes, tests break. SynapseQA uses Anthropic's `computer_20250124` tool to visually perceive the rendered screen and execute coordinate actions—requiring zero selector code.
-            </p>
-          </div>
-          <div className="p-6 rounded-2xl border border-white/[0.08] surface-glass">
-            <h4 className="text-sm font-semibold text-white flex items-center gap-2">
-              <HelpCircle className="w-4 h-4 text-orange-400 shrink-0" /> How do you keep multi-step Computer Use token costs low?
-            </h4>
-            <p className="mt-2 text-xs sm:text-sm text-zinc-400 leading-relaxed">
-              We leverage Anthropic's Ephemeral Prompt Caching (`cache_control: &#123;"type": "ephemeral"&#125;`) across the system prompt, tool definitions, and repository AST context. Across a 10-step browser test journey, we achieve a 94.2% cache hit ratio, reducing token expenditure by nearly 90%.
-            </p>
-          </div>
-          <div className="p-6 rounded-2xl border border-white/[0.08] surface-glass">
-            <h4 className="text-sm font-semibold text-white flex items-center gap-2">
-              <HelpCircle className="w-4 h-4 text-orange-400 shrink-0" /> How does it handle staging authentication and secrets?
-            </h4>
-            <p className="mt-2 text-xs sm:text-sm text-zinc-400 leading-relaxed">
-              Each test run executes inside an ephemeral, hardware-isolated Firecracker micro-VM that is destroyed immediately after completion. Credentials and OAuth tokens are injected at the browser context layer with Zero Data Retention (ZDR) headers forwarded to Anthropic.
-            </p>
-          </div>
+          {[
+            ['Is the walkthrough above a live run?', 'No. It is a scripted illustration. The real agent lives in agent/computer_use.py; clone the repo and run it with your own Anthropic key to see real traces.'],
+            ['Is this ready for production CI?', 'Not yet. The loop, CLI and exit codes work and are unit-tested offline against a fake client, but we have not benchmarked accuracy, cost or flakiness on real applications. Treat it as an early, open-source tool.'],
+            ['What data leaves my machine?', 'Every step sends a screenshot of the page to the Anthropic API. Do not point it at pages showing sensitive data, run it in a throwaway VM or container, and follow Anthropic\u2019s computer use security guidance.']
+          ].map(([q, a]) => (
+            <div key={q} className="p-6 rounded-2xl border border-white/[0.08] surface-glass">
+              <h4 className="text-sm font-semibold text-white flex items-center gap-2">
+                <HelpCircle className="w-4 h-4 text-orange-400 shrink-0" /> {q}
+              </h4>
+              <p className="mt-2 text-xs sm:text-sm text-zinc-400 leading-relaxed">{a}</p>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-800 bg-black/60 py-12 px-4 sm:px-6 lg:px-8 text-center text-xs text-zinc-500">
+      <footer className="border-t border-zinc-800 bg-black/60 py-12 px-4 sm:px-6 lg:px-8 text-xs text-zinc-500">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-6 h-6 rounded-lg bg-orange-500 flex items-center justify-center text-white">
               <Eye className="w-3.5 h-3.5" />
             </div>
             <span className="font-semibold text-zinc-300">SynapseQA</span>
-            <span>&copy; 2026 All rights reserved.</span>
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-[11px] font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Engine v1.3.0 &bull; Claude 3.7 Ready
-            </span>
+            <span>MIT licensed &middot; &copy; 2026 Yakup Ak&ccedil;ay</span>
           </div>
           <div className="flex flex-wrap justify-center gap-6 text-zinc-400">
-            <a href="#live-simulator" className="hover:text-white transition-colors">Workbench</a>
-            <a href="#architecture" className="hover:text-white transition-colors">Claude Primitives</a>
-            <button onClick={() => setIsDocsOpen(true)} className="hover:text-white transition-colors cursor-pointer">Docs &amp; SDK</button>
-            <a href="https://github.com/yakupakcay-eng/synapseqa" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">GitHub</a>
-            <a href="mailto:founder@synapseqa.me" className="hover:text-white transition-colors">founder@synapseqa.me</a>
+            <a href="#walkthrough" className="hover:text-white transition-colors">Walkthrough</a>
+            <button onClick={() => setIsDocsOpen(true)} className="hover:text-white transition-colors cursor-pointer">Docs</button>
+            <a href={REPO_URL} target="_blank" rel="noreferrer" className="hover:text-white transition-colors">GitHub</a>
+            <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-white transition-colors">{CONTACT_EMAIL}</a>
           </div>
         </div>
       </footer>
 
-      {/* Developer Docs & SDK Reference Modal */}
+      {/* Docs modal */}
       {isDocsOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="bg-zinc-900 border border-zinc-750 rounded-2xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[88vh] overflow-y-auto">
-            <button
-              onClick={() => setIsDocsOpen(false)}
-              className="absolute top-4 right-4 text-zinc-400 hover:text-white text-xl font-bold cursor-pointer"
-            >
-              &times;
-            </button>
-
+          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[88vh] overflow-y-auto">
+            <button onClick={() => setIsDocsOpen(false)} className="absolute top-4 right-4 text-zinc-400 hover:text-white text-xl font-bold cursor-pointer">&times;</button>
             <div className="flex items-center gap-2 text-orange-400 text-xs font-semibold uppercase tracking-wider mb-2">
-              <Code2 className="w-4 h-4" /> Developer Documentation &amp; Anthropic SDK Integration
+              <Code2 className="w-4 h-4" /> Documentation
             </div>
-            <h3 className="text-2xl font-bold text-white mb-2">SynapseQA v1.3 Quickstart &amp; Architecture</h3>
-            <p className="text-xs text-zinc-400 mb-6">
-              Integrate autonomous Claude 3.7 Sonnet Computer Use verification directly into your CI/CD pipeline with Ephemeral Prompt Caching enabled by default.
-            </p>
+            <h3 className="text-2xl font-bold text-white mb-4">Using SynapseQA</h3>
 
             <div className="space-y-6 text-left">
               <div>
-                <h4 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider mb-2">1. GitHub Actions CI/CD Workflow (`.github/workflows/synapseqa.yml`)</h4>
-                <pre className="p-4 rounded-xl bg-black/80 border border-zinc-800 font-mono text-[11px] text-zinc-300 overflow-x-auto leading-relaxed">{`name: Autonomous Visual QA
-on: [pull_request]
+                <h4 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider mb-2">CLI flags</h4>
+                <pre className="p-4 rounded-xl bg-black/80 border border-zinc-800 font-mono text-[11px] text-zinc-300 overflow-x-auto leading-relaxed">{`--target=<url>        page to test (required)
+--goal="<sentence>"   what the agent should try
+--max-steps=12        cap on model turns
+--model=${MODEL_ID}
+--dry-run             no model call, no browser
 
-jobs:
-  synapseqa-audit:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run SynapseQA Claude Computer Use Agent
-        run: npx github:yakupakcay-eng/synapseqa --target="\${{ env.PREVIEW_URL }}" --autonomous --auto-pr
-        env:
-          ANTHROPIC_API_KEY: \${{ secrets.ANTHROPIC_API_KEY }}
-          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}`}</pre>
+exit code: 0 = PASS or DRY_RUN, 1 = FAIL or INCONCLUSIVE, 2 = error`}</pre>
               </div>
-
               <div>
-                <h4 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider mb-2">2. Python Agent SDK with Ephemeral Prompt Caching &amp; Extended Thinking</h4>
-                <pre className="p-4 rounded-xl bg-black/80 border border-zinc-800 font-mono text-[11px] text-zinc-300 overflow-x-auto leading-relaxed">{`from agent.computer_use import SynapseAgent
-
-agent = SynapseAgent(
-    model="claude-3-7-sonnet-20250219",
-    viewport_width=1440,
-    viewport_height=900
-)
-
-# Executes headless Playwright + Claude Computer Use (computer_20250124)
-# Caches repository AST via cache_control={"type": "ephemeral"} (-90% token cost)
-result = await agent.run_autonomous_audit(
-    target_url="https://stage.myapp.dev/checkout",
-    prompt="Verify discount code SPRING25 recalculates tax and total accurately."
-)`}</pre>
+                <h4 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider mb-2">Tests (no network needed)</h4>
+                <pre className="p-4 rounded-xl bg-black/80 border border-zinc-800 font-mono text-[11px] text-zinc-300 overflow-x-auto leading-relaxed">{`cd agent && python -m unittest -v`}</pre>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-800">
-                  <div className="text-xs font-semibold text-white">Isolated Browser Workers</div>
-                  <div className="text-[11px] text-zinc-400 mt-1">Ephemeral headless Chromium sandboxes destroyed immediately post-run.</div>
-                </div>
-                <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-800">
-                  <div className="text-xs font-semibold text-orange-400">94.2% Cache Hit Ratio</div>
-                  <div className="text-[11px] text-zinc-400 mt-1">Anthropic Prompt Caching keeps multi-step DOM/AST inspection fast and affordable.</div>
-                </div>
-                <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-800">
-                  <div className="text-xs font-semibold text-emerald-400">Zero-Selector Guarantee</div>
-                  <div className="text-[11px] text-zinc-400 mt-1">Pure coordinate &amp; visual perception via Claude 3.7 Sonnet Computer Use.</div>
-                </div>
-              </div>
+              <p className="text-[11px] text-zinc-400 leading-relaxed">
+                The agent returns <code className="font-mono text-orange-300">status</code>, the step list, the model&apos;s written report and the token usage
+                reported by the API (including <code className="font-mono text-orange-300">cache_read_input_tokens</code>).
+              </p>
             </div>
 
             <div className="mt-6 pt-4 border-t border-zinc-800 flex justify-between items-center">
-              <a
-                href="https://github.com/yakupakcay-eng/synapseqa"
-                target="_blank"
-                rel="noreferrer"
-                className="text-xs text-orange-400 hover:underline font-medium"
-              >
-                View Full Source on GitHub &rarr;
-              </a>
-              <button
-                onClick={() => setIsDocsOpen(false)}
-                className="px-5 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold cursor-pointer"
-              >
-                Done
-              </button>
+              <a href={REPO_URL} target="_blank" rel="noreferrer" className="text-xs text-orange-400 hover:underline font-medium">View source on GitHub &rarr;</a>
+              <button onClick={() => setIsDocsOpen(false)} className="px-5 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold cursor-pointer">Done</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Interactive Waitlist / Request Access Modal */}
+      {/* Early access modal: opens the visitor's email client; nothing is stored by the site */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="bg-zinc-900 border border-zinc-750 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
-            <button
-              onClick={() => { setIsModalOpen(false); setSubmitted(false); }}
-              className="absolute top-4 right-4 text-zinc-400 hover:text-white text-lg font-bold"
-            >
-              &times;
-            </button>
-
-            {!submitted ? (
+          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+            <button onClick={() => setIsModalOpen(false)} className="absolute top-4 right-4 text-zinc-400 hover:text-white text-lg font-bold cursor-pointer">&times;</button>
+            <div className="w-10 h-10 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-400 mb-4">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-1">Request early access</h3>
+            <p className="text-xs text-zinc-400 mb-5">
+              There is no hosted product yet. Tell us what you would like to test and we will reach out. This opens your email client addressed to {CONTACT_EMAIL}.
+            </p>
+            <form onSubmit={submitEarlyAccess} className="space-y-4">
               <div>
-                <div className="w-10 h-10 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-400 mb-4">
-                  <Sparkles className="w-5 h-5" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-1">Request Early Pilot Access</h3>
-                <p className="text-xs text-zinc-400 mb-5">
-                  Deploy autonomous Claude 3.7 Sonnet Computer Use verification on your staging pipelines or run our open-source CLI today.
-                </p>
-
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    if (emailInput) setSubmitted(true);
-                  }}
-                  className="space-y-4"
-                >
-                  <div>
-                    <label className="text-xs font-medium text-zinc-300 block mb-1">Work Email</label>
-                    <input
-                      type="email"
-                      required
-                      placeholder="founder@yourcompany.com"
-                      value={emailInput}
-                      onChange={(e) => setEmailInput(e.target.value)}
-                      className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-orange-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-zinc-300 block mb-1">Company Website / GitHub Repo</label>
-                    <input
-                      type="text"
-                      placeholder="https://github.com/myteam/webapp"
-                      className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-orange-500"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full py-2.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm shadow-lg shadow-orange-500/25 transition-all cursor-pointer"
-                  >
-                    Request Managed Pilot
-                  </button>
-                </form>
+                <label className="text-xs font-medium text-zinc-300 block mb-1">Your email</label>
+                <input type="email" required placeholder="you@yourcompany.com" value={emailInput} onChange={(e) => setEmailInput(e.target.value)} className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-orange-500" />
               </div>
-            ) : (
-              <div className="text-center py-6">
-                <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
-                <h3 className="text-lg font-bold text-white mb-1">Pilot Request Registered</h3>
-                <p className="text-xs text-zinc-400 mb-4">
-                  We recorded <span className="text-orange-400 font-mono">{emailInput}</span> for early pilot onboarding. You can also test locally right now via GitHub CLI or reach out directly at <a href="mailto:founder@synapseqa.me" className="text-orange-400 underline">founder@synapseqa.me</a>.
-                </p>
-                <button
-                  onClick={() => { setIsModalOpen(false); setSubmitted(false); }}
-                  className="px-5 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-medium cursor-pointer"
-                >
-                  Close
-                </button>
+              <div>
+                <label className="text-xs font-medium text-zinc-300 block mb-1">Site or repo to test (optional)</label>
+                <input type="text" placeholder="https://github.com/your-org/webapp" value={projectInput} onChange={(e) => setProjectInput(e.target.value)} className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-orange-500" />
               </div>
-            )}
+              <button type="submit" className="w-full py-2.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm shadow-lg shadow-orange-500/25 transition-all cursor-pointer">
+                Compose email
+              </button>
+            </form>
           </div>
         </div>
       )}

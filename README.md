@@ -1,98 +1,72 @@
-# SynapseQA &mdash; Autonomous Web QA Engine Powered by Claude Computer Use
+# SynapseQA
 
-<p align="center">
-  <a href="https://github.com/yakupakcay-eng/synapseqa/actions/workflows/ci.yml"><img src="https://github.com/yakupakcay-eng/synapseqa/actions/workflows/ci.yml/badge.svg" alt="CI Pipeline" /></a>
-  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" /></a>
-  <a href="https://www.anthropic.com"><img src="https://img.shields.io/badge/Anthropic-Claude_3.7_Sonnet-orange.svg" alt="Claude 3.7 Sonnet" /></a>
-  <a href="https://nodejs.org"><img src="https://img.shields.io/badge/node->=%2020.0.0-green.svg" alt="Node Version" /></a>
-  <a href="https://www.synapseqa.me"><img src="https://img.shields.io/badge/Live_Demo-synapseqa.me-blue.svg" alt="Website" /></a>
-</p>
+[![CI](https://github.com/yakupakcay-eng/synapseqa/actions/workflows/ci.yml/badge.svg)](https://github.com/yakupakcay-eng/synapseqa/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> **Ship flawless web applications with zero brittle selectors.**  
-> SynapseQA uses **Anthropic Claude 3.7 Sonnet Computer Use & Multimodal Vision** to autonomously navigate web applications, assert user journeys, detect visual layout shifts, and open automated GitHub Pull Requests with code fixes.
+**Browser QA driven by Claude's computer use tool.** Describe a user journey in plain English; the agent drives a real
+Chromium browser from screenshots and reports `VERDICT: PASS` or `VERDICT: FAIL` with what it saw. No CSS/XPath selectors.
 
----
+Early-stage, open source. Site: <https://www.synapseqa.me> &middot; Contact: founder@synapseqa.me
 
-## 🏗️ Architecture Overview
+## How it works
 
-```mermaid
-flowchart TD
-    A["Target Web App (Staging/Production)"] --> B["Sandboxed Headless Chromium (Playwright)"]
-    B --> C["Viewport Screenshot (1440x900)"]
-    C --> D["Anthropic Claude 3.7 Sonnet Computer Use API"]
-    D --> E{"Assertion Verdict"}
-    E -->|"Action Required"| F["Coordinate Action Dispatcher (mouse_move, click, type)"]
-    F --> B
-    E -->|"Visual Regression Detected"| G["AST Code Ingestion (200k Context)"]
-    G --> H["Automated GitHub Fix PR Opened"]
-    E -->|"Journey Verified"| I["CI/CD Telemetry Logged (Exit 0)"]
+```
+Playwright (headless Chromium)  <->  Claude Messages API
+                                     model: claude-sonnet-5-5
+                                     tools: [{"type": "computer_toolset_20260801"}]
 ```
 
----
+1. Chromium opens the target page in a fixed viewport.
+2. Claude receives the goal and answers with `tool_use` blocks (`screenshot`, `left_click`, `type`, `scroll`, ...).
+3. We run each action in the browser and reply with a `tool_result` that contains a fresh screenshot.
+4. When Claude stops calling tools it writes a report ending in `VERDICT: PASS|FAIL`.
 
-## ⚡ Quickstart
+The system prompt is identical on every turn, so it carries `cache_control: {"type": "ephemeral"}`. Token usage,
+including `cache_read_input_tokens`, is read from the API response and returned with each run. Code: [`agent/computer_use.py`](agent/computer_use.py).
 
-### 1. Run Autonomous Test Journey via CLI
-Run directly from GitHub via `npx` (no global installation required):
+## Run it
+
 ```bash
-# Test any web application autonomously
-npx github:yakupakcay-eng/synapseqa --target="https://stage.myapp.dev" --autonomous
-
-# Run pre-configured test journey with auto-PR generation
-npx github:yakupakcay-eng/synapseqa run --scenario=checkout --auto-pr
+git clone https://github.com/yakupakcay-eng/synapseqa && cd synapseqa
+pip install -r agent/requirements.txt && playwright install chromium
+export ANTHROPIC_API_KEY=sk-ant-...      # PowerShell: $env:ANTHROPIC_API_KEY="sk-ant-..."
+node cli/bin/synapseqa.js --target=https://example.com --goal="Smoke-test the sign-up flow"
 ```
 
-### 2. Local Development (Web Platform)
+Without `ANTHROPIC_API_KEY` the agent performs a **dry run**: it states that no model was called and nothing was tested.
+Exit codes: `0` PASS/DRY_RUN, `1` FAIL/INCONCLUSIVE, `2` error.
+
+Python:
+
+```python
+import asyncio
+from agent.computer_use import SynapseAgent
+
+result = asyncio.run(SynapseAgent().run_audit("https://example.com", "Smoke-test the sign-up flow"))
+print(result["status"], result["report"])
+```
+
+Security: every step sends a screenshot to the Anthropic API. Run in a throwaway VM/container, avoid pages with sensitive
+data, and follow Anthropic's computer use security guidance.
+
+## Tests
+
 ```bash
-# Install dependencies
-npm install
-
-# Run Vite dev server
-npm run dev
-
-# Run linter & CLI verification
-npm run lint
-npm run test:cli
+cd agent && python -m unittest -v     # offline: scripted fake Claude client + fake page, no network
+npm ci && npm run lint && npm run build   # website
 ```
 
-### 3. Agent Engine (Python Backend)
-For developers integrating custom headless browser clusters:
-```bash
-cd agent
-pip install -r requirements.txt
-python computer_use.py
-```
+## Status
 
----
+| In the repo today | Not done yet |
+| :--- | :--- |
+| Multi-turn loop with full message history (tool_use / tool_result) | Benchmarks on real apps (accuracy, cost, latency, flakiness are **not measured**) |
+| Browser action dispatcher (click, type, key, scroll, wait) | Repo-aware defect localisation |
+| CLI with CI-friendly exit codes | Hosted runner, parallel runs, trace viewer |
+| Offline tests run in CI | `agent/github_pr.py` opens a PR from a model-proposed patch; implemented but not yet run against a live repo |
 
-## 🎯 Why SynapseQA vs Legacy Testing?
+The interactive panel on the website is a **scripted illustration**, not a live model run.
 
-| Feature | SynapseQA (Claude 3.7) | Cypress / Playwright | Manual QA |
-| :--- | :--- | :--- | :--- |
-| **Test Creation** | Plain English Prompts | Fragile CSS/XPath Selectors | Spreadsheets & Checklists |
-| **Refactor Resilience** | **100% (Visual Perception)** | Breaks on class/DOM rename | High but Slow |
-| **Execution Speed** | < 15s per user journey | Fast (if selectors unbroken) | Days |
-| **Bugfix Generation** | **Automatic GitHub PR** | Manual Jira Tickets | Manual Jira Tickets |
-| **Token Cost Optimization** | **90% Saved (`ephemeral` cache)** | N/A | N/A |
+## License
 
----
-
-## 🤖 Claude Computer Use & Prompt Caching Protocol
-
-SynapseQA communicates with Anthropic's `computer-use-2025-01-24` and `prompt-caching-2024-07-31` beta headers via normalized screen coordinates and ephemeral AST caching:
-
-```json
-{
-  "type": "computer_20250124",
-  "name": "computer",
-  "display_width_px": 1440,
-  "display_height_px": 900,
-  "cache_control": { "type": "ephemeral" }
-}
-```
-
----
-
-## 📄 License
-This project is licensed under the [MIT License](LICENSE) &copy; 2026 Yakup Akçay / SynapseQA.
-
+[MIT](LICENSE) &copy; 2026 Yakup Ak&ccedil;ay

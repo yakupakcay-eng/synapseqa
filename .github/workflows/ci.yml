@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build-and-test:
+  web:
     runs-on: ubuntu-latest
 
     strategy:
@@ -35,3 +35,21 @@ jobs:
 
     - name: Verify CLI Entrypoint
       run: node cli/bin/synapseqa.js --version
+
+    - name: CLI dry run (no model call)
+      run: node cli/bin/synapseqa.js --target=https://example.com --dry-run
+
+  agent:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Run offline agent tests
+      working-directory: agent
+      run: python -m unittest -v

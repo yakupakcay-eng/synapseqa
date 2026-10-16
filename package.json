@@ -1,7 +1,7 @@
 {
   "name": "synapseqa",
-  "version": "1.3.0",
-  "description": "Autonomous Web QA & Visual Regression Engine powered by Anthropic Claude 3.7 Computer Use",
+  "version": "1.4.0",
+  "description": "Browser QA agent driven by Claude computer use: describe a journey in English, get a PASS/FAIL report.",
   "private": false,
   "type": "module",
   "bin": {
