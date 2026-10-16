@@ -63,6 +63,7 @@ export default function App() {
   const [currentStepIndex, setCurrentStepIndex] = useState(-1);
   const [targetUrl, setTargetUrl] = useState('https://stage.acmestore.io/app');
   const [telemetryTab, setTelemetryTab] = useState('stream');
+  const [quickstartTab, setQuickstartTab] = useState('cli');
   const [customPrompt, setCustomPrompt] = useState('Test user login with Google OAuth, navigate to settings, toggle 2FA, and assert confirmation modal appears.');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDocsOpen, setIsDocsOpen] = useState(false);
@@ -107,165 +108,273 @@ export default function App() {
     }
   }, [isRunningTest, currentStepIndex, selectedScenario]);
 
+  const quickstartSnippets = {
+    cli: 'npx synapseqa --target="https://stage.myapp.dev" --autonomous --auto-pr',
+    ci: '- uses: yakupakcay-eng/synapseqa@v1\n  with:\n    anthropic-key: ${{ secrets.ANTHROPIC_API_KEY }}',
+    sdk: 'agent = SynapseAgent(model="claude-3-7-sonnet-20250219", prompt_caching=True)'
+  };
+
   const copyInstallCode = () => {
-    navigator.clipboard.writeText('npm install -g @synapseqa/cli\nsynapseqa init --key=claude_sk_...');
+    navigator.clipboard.writeText(quickstartSnippets[quickstartTab]);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
   return (
-    <div className="min-h-screen bg-[#0c0d0e] text-zinc-100 selection:bg-orange-500/30 selection:text-orange-200">
-      {/* Background ambient glow */}
+    <div className="min-h-screen bg-[#09090b] text-zinc-100 selection:bg-orange-500/30 selection:text-orange-200">
+      {/* Architectural Grid & Ambient Spotlight */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[550px] bg-gradient-to-b from-orange-500/15 via-amber-600/5 to-transparent blur-[120px] rounded-full glow-ambient" />
-        <div className="absolute top-[800px] -left-40 w-[600px] h-[500px] bg-orange-600/5 blur-[140px] rounded-full" />
+        <div className="absolute inset-0 bg-architectural-grid" />
+        <div className="absolute -top-48 left-1/2 -translate-x-1/2 w-[1000px] h-[580px] bg-gradient-to-b from-orange-500/14 via-amber-500/5 to-transparent blur-[130px] rounded-full glow-ambient" />
+        <div className="absolute top-[750px] -left-40 w-[600px] h-[500px] bg-orange-600/5 blur-[150px] rounded-full" />
       </div>
 
       {/* Top Banner: Claude for Startups Acknowledgement */}
-      <div className="relative z-50 border-b border-orange-500/20 bg-orange-950/20 backdrop-blur-md px-4 py-2 text-center text-xs font-medium text-orange-200/90 flex items-center justify-center gap-2">
-        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-orange-500/20 border border-orange-500/30 text-[11px] text-orange-300 font-semibold tracking-wide uppercase">
-          <Sparkles className="w-3 h-3 text-orange-400" /> Anthropic Claude Ecosystem
+      <div className="relative z-50 border-b border-white/[0.07] bg-zinc-950/80 backdrop-blur-md px-4 py-2 text-center text-xs font-medium text-zinc-300 flex flex-wrap items-center justify-center gap-2">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-orange-500/15 border border-orange-500/30 text-[10px] text-orange-300 font-semibold tracking-wider uppercase">
+          <Sparkles className="w-3 h-3 text-orange-400" /> Anthropic Claude 3.7 Native
         </span>
-        <span>Architected natively for <strong>Claude 3.7 Sonnet Computer Use API</strong>, Extended Thinking &amp; Ephemeral Prompt Caching.</span>
+        <span>Built on <strong>Computer Use (`computer_20250124`)</strong>, <strong>Extended Thinking</strong> &amp; <strong>Ephemeral Prompt Caching</strong>.</span>
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="ml-2 underline hover:text-white transition-colors cursor-pointer"
+          className="ml-1 text-orange-400 hover:text-orange-300 font-semibold underline underline-offset-4 transition-colors cursor-pointer"
         >
-          Request Early Pilot &rarr;
+          Request Pilot Key &rarr;
         </button>
       </div>
 
       {/* Header / Navbar */}
-      <header className="relative z-40 border-b border-zinc-800/80 bg-[#0c0d0e]/80 backdrop-blur-xl sticky top-0">
+      <header className="relative z-40 border-b border-white/[0.07] bg-[#09090b]/80 backdrop-blur-xl sticky top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-orange-600 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/20 border border-orange-400/30">
-              <Eye className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-b from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/25 border border-white/20">
+              <Eye className="w-4 h-4 text-white" />
             </div>
-            <div>
-              <span className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-base font-bold tracking-tight text-white">
                 Synapse<span className="text-orange-500">QA</span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700/60 font-mono">v1.3</span>
+              </span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-zinc-900 text-zinc-400 border border-white/10 font-mono">
+                v1.3.0
               </span>
             </div>
           </div>
 
-          <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-zinc-400">
-            <a href="#live-simulator" className="hover:text-zinc-100 transition-colors">Live Sandbox</a>
-            <a href="#architecture" className="hover:text-zinc-100 transition-colors">Claude Engine</a>
-            <a href="#roi-calculator" className="hover:text-zinc-100 transition-colors">ROI Calculator</a>
-            <a href="#pricing" className="hover:text-zinc-100 transition-colors">Pricing</a>
+          <nav className="hidden md:flex items-center gap-7 text-xs font-medium text-zinc-400">
+            <a href="#how-it-works" className="hover:text-white transition-colors">Pipeline</a>
+            <a href="#live-simulator" className="hover:text-white transition-colors">Live Workbench</a>
+            <a href="#architecture" className="hover:text-white transition-colors">Claude Primitives</a>
+            <a href="#roi-calculator" className="hover:text-white transition-colors">ROI Model</a>
+            <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
             <button
               onClick={() => setIsDocsOpen(true)}
-              className="hover:text-orange-400 transition-colors flex items-center gap-1 cursor-pointer"
+              className="hover:text-orange-400 transition-colors flex items-center gap-1 cursor-pointer text-zinc-300"
             >
               <Code2 className="w-3.5 h-3.5 text-orange-400" /> Docs &amp; SDK
             </button>
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <button
               onClick={() => setIsDocsOpen(true)}
-              className="text-xs sm:text-sm font-medium text-zinc-300 hover:text-white px-3 py-1.5 rounded-lg border border-zinc-700/60 hover:bg-zinc-800/50 transition-all cursor-pointer"
+              className="text-xs font-medium text-zinc-300 hover:text-white px-3 py-1.5 rounded-lg border border-white/10 bg-white/[0.02] hover:bg-white/[0.06] transition-all cursor-pointer"
             >
-              API Docs
+              API Reference
             </button>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="text-xs sm:text-sm font-semibold bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white px-4 py-2 rounded-lg shadow-md shadow-orange-500/25 transition-all flex items-center gap-1.5 cursor-pointer"
+              className="text-xs font-semibold bg-gradient-to-b from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white px-4 py-2 rounded-lg shadow-lg shadow-orange-500/20 border border-orange-400/30 transition-all flex items-center gap-1.5 cursor-pointer"
             >
-              Get Started <ArrowRight className="w-4 h-4" />
+              Start Free Pilot <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="relative z-10 pt-20 pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-orange-500/30 bg-orange-500/10 text-orange-300 text-xs sm:text-sm font-medium mb-8">
-          <span className="flex h-2 w-2 rounded-full bg-orange-500 animate-ping" />
-          <span>Next-Gen Autonomous QA: Zero Brittle Selectors, 100% Vision & Computer Use</span>
+      <section className="relative z-10 pt-20 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
+        <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border border-white/10 bg-zinc-900/80 backdrop-blur-md text-zinc-300 text-xs font-medium mb-8 shadow-sm">
+          <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-zinc-400">Anthropic Computer Use Beta</span>
+          <span className="text-zinc-700">|</span>
+          <span className="text-orange-400 font-semibold">Zero Selectors &bull; Auto-PR Remediation</span>
         </div>
 
-        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white max-w-5xl mx-auto leading-[1.1]">
-          Stop writing brittle test scripts. <br />
-          <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-orange-500 bg-clip-text text-transparent">
-            Let Claude test your web apps like a human.
+        <h1 className="text-4xl sm:text-6xl lg:text-[68px] font-extrabold tracking-[-0.035em] text-white max-w-5xl mx-auto leading-[1.06]">
+          Autonomous visual QA <br className="hidden sm:inline" />
+          <span className="bg-gradient-to-r from-white via-orange-200 to-orange-500 bg-clip-text text-transparent">
+            engineered on Claude Vision.
           </span>
         </h1>
 
-        <p className="mt-6 text-lg sm:text-xl text-zinc-400 max-w-3xl mx-auto leading-relaxed">
-          SynapseQA leverages <strong>Anthropic Claude 3.7 Sonnet Computer Use</strong> to autonomously navigate, test, and audit your web applications. It sees the UI, moves the mouse, fills forms, catches visual layout bugs, and automatically opens GitHub PRs with fixes.
+        <p className="mt-6 text-base sm:text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed font-normal">
+          Replace brittle Cypress and Playwright selectors with self-healing multimodal agents. SynapseQA boots isolated Firecracker browsers, perceives UI pixels via <strong>Claude 3.7 Sonnet Computer Use</strong>, and opens GitHub Pull Requests with verified CSS/AST fixes.
         </p>
 
         {/* CTA Buttons */}
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+        <div className="mt-9 flex flex-wrap items-center justify-center gap-3.5">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="px-6 py-3.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-base shadow-lg shadow-orange-500/25 flex items-center gap-2 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+            className="px-6 py-3 rounded-xl bg-gradient-to-b from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold text-sm shadow-xl shadow-orange-500/20 border border-orange-400/30 flex items-center gap-2 transition-all cursor-pointer hover:scale-[1.01]"
           >
-            Deploy First QA Agent in 60s <ArrowRight className="w-4 h-4" />
+            Deploy Autonomous Agent <ArrowRight className="w-4 h-4" />
           </button>
           <a
             href="#live-simulator"
-            className="px-6 py-3.5 rounded-xl border border-zinc-700 hover:border-zinc-500 bg-zinc-900/60 hover:bg-zinc-800/80 text-zinc-200 font-medium text-base flex items-center gap-2 transition-all"
+            className="px-6 py-3 rounded-xl border border-white/10 hover:border-white/20 bg-zinc-900/70 hover:bg-zinc-800/80 text-zinc-200 font-medium text-sm flex items-center gap-2 transition-all surface-glass"
           >
-            <Play className="w-4 h-4 text-orange-400" /> Watch Interactive Simulation
+            <Play className="w-3.5 h-3.5 text-orange-400 fill-orange-400" /> Launch Interactive Sandbox
           </a>
         </div>
 
-        {/* Key Metrics */}
-        <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto text-left">
-          <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-sm">
-            <div className="text-2xl sm:text-3xl font-bold text-white tracking-tight">0 min</div>
-            <div className="text-xs text-zinc-400 mt-1">Cypress / Selenium code to maintain</div>
+        {/* Multi-Tab Developer Quickstart Command Bar */}
+        <div className="mt-12 max-w-2xl mx-auto rounded-2xl border border-white/10 surface-glass overflow-hidden text-left shadow-2xl">
+          <div className="flex items-center justify-between px-4 py-2 border-b border-white/[0.07] bg-black/40 text-[11px]">
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setQuickstartTab('cli')}
+                className={`px-2.5 py-1 rounded-md font-mono transition-colors cursor-pointer ${quickstartTab === 'cli' ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30 font-semibold' : 'text-zinc-400 hover:text-zinc-200'}`}
+              >
+                CLI Quickstart
+              </button>
+              <button
+                onClick={() => setQuickstartTab('ci')}
+                className={`px-2.5 py-1 rounded-md font-mono transition-colors cursor-pointer ${quickstartTab === 'ci' ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30 font-semibold' : 'text-zinc-400 hover:text-zinc-200'}`}
+              >
+                GitHub Actions
+              </button>
+              <button
+                onClick={() => setQuickstartTab('sdk')}
+                className={`px-2.5 py-1 rounded-md font-mono transition-colors cursor-pointer ${quickstartTab === 'sdk' ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30 font-semibold' : 'text-zinc-400 hover:text-zinc-200'}`}
+              >
+                Python SDK
+              </button>
+            </div>
+            <span className="text-zinc-500 font-mono text-[10px]">Node &gt;= 20 &bull; Python 3.11+</span>
           </div>
-          <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-sm">
-            <div className="text-2xl sm:text-3xl font-bold text-orange-400 tracking-tight">99.4%</div>
-            <div className="text-xs text-zinc-400 mt-1">Reduction in false positive flakiness</div>
-          </div>
-          <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-sm">
-            <div className="text-2xl sm:text-3xl font-bold text-white tracking-tight">3.2 sec</div>
-            <div className="text-xs text-zinc-400 mt-1">Average user journey verification</div>
-          </div>
-          <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-sm">
-            <div className="text-2xl sm:text-3xl font-bold text-amber-400 tracking-tight">Auto-PR</div>
-            <div className="text-xs text-zinc-400 mt-1">Direct GitHub fix generation</div>
+          <div className="p-4 font-mono text-xs flex items-center justify-between gap-3 bg-black/50">
+            <div className="flex items-center gap-2.5 overflow-x-auto py-0.5">
+              <span className="text-orange-500 font-bold select-none">$</span>
+              <code className="text-zinc-200 whitespace-pre">{quickstartSnippets[quickstartTab]}</code>
+            </div>
+            <button
+              onClick={copyInstallCode}
+              className="p-2 rounded-lg border border-white/10 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer text-[11px]"
+              title="Copy snippet"
+            >
+              {copiedCode ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="text-emerald-400 font-sans font-medium">Copied</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5" />
+                  <span className="font-sans font-medium">Copy</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
 
-        {/* Terminal Quickstart */}
-        <div className="mt-12 max-w-xl mx-auto p-3 rounded-xl border border-zinc-800 bg-black/60 font-mono text-xs text-left flex items-center justify-between shadow-2xl">
-          <div className="flex items-center gap-2 text-zinc-400 overflow-x-auto py-1">
-            <span className="text-orange-500 font-bold">$</span>
-            <span className="text-zinc-200">npx synapseqa-agent --target="https://myapp.dev" --autonomous</span>
+        {/* Key Engineering Telemetry Metrics */}
+        <div className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto text-left">
+          <div className="p-5 rounded-2xl border border-white/[0.08] surface-glass">
+            <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Selector Maintenance</div>
+            <div className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1">0 hrs/wk</div>
+            <div className="text-[11px] text-emerald-400 mt-1 font-medium">100% coordinate perception</div>
           </div>
-          <button
-            onClick={copyInstallCode}
-            className="ml-3 p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors flex items-center gap-1 shrink-0"
-            title="Copy command"
-          >
-            {copiedCode ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
-          </button>
+          <div className="p-5 rounded-2xl border border-white/[0.08] surface-glass">
+            <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Prompt Cache Hit Rate</div>
+            <div className="text-2xl sm:text-3xl font-bold text-orange-400 tracking-tight mt-1">94.2%</div>
+            <div className="text-[11px] text-zinc-400 mt-1">Via `ephemeral` AST caching</div>
+          </div>
+          <div className="p-5 rounded-2xl border border-white/[0.08] surface-glass">
+            <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Median Journey Audit</div>
+            <div className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1">3.2 sec</div>
+            <div className="text-[11px] text-zinc-400 mt-1">Parallel Firecracker workers</div>
+          </div>
+          <div className="p-5 rounded-2xl border border-white/[0.08] surface-glass">
+            <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Remediation Mode</div>
+            <div className="text-2xl sm:text-3xl font-bold text-amber-400 tracking-tight mt-1">Auto-PR</div>
+            <div className="text-[11px] text-zinc-400 mt-1">Verified Git diff generation</div>
+          </div>
+        </div>
+
+        {/* Ecosystem Compatibility Strip */}
+        <div className="mt-14 pt-8 border-t border-white/[0.06] max-w-4xl mx-auto">
+          <div className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 mb-4">
+            Native Integration With Modern Engineering Stacks
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-xs font-mono text-zinc-400">
+            <span className="px-3 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02]">Anthropic Claude 3.7 Sonnet</span>
+            <span className="px-3 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02]">Playwright Headless Chromium</span>
+            <span className="px-3 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02]">GitHub Actions CI/CD</span>
+            <span className="px-3 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02]">Vercel Preview Webhooks</span>
+            <span className="px-3 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02]">Firecracker Micro-VMs</span>
+          </div>
+        </div>
+      </section>
+
+      {/* 4-Stage Autonomous Pipeline Section (#how-it-works) */}
+      <section id="how-it-works" className="relative z-10 py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/[0.07]">
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-500/20 bg-orange-500/10 text-orange-400 text-[11px] font-mono font-semibold uppercase tracking-wider mb-3">
+            AUTONOMOUS EXECUTION PIPELINE
+          </div>
+          <h2 className="text-2xl sm:text-4xl font-bold text-white tracking-tight">
+            From PR Webhook to Verified Bugfix in Four Stages
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="p-5 rounded-2xl border border-white/[0.08] surface-glass relative">
+            <div className="text-[11px] font-mono font-bold text-orange-400 mb-2">STAGE 01 // SANDBOX</div>
+            <h3 className="text-sm font-bold text-white mb-1.5">Ephemeral Micro-VM Boot</h3>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              Every Git push triggers an isolated headless Chromium worker at 1440x900 or Mobile DPR 3x resolution.
+            </p>
+          </div>
+          <div className="p-5 rounded-2xl border border-white/[0.08] surface-glass relative">
+            <div className="text-[11px] font-mono font-bold text-orange-400 mb-2">STAGE 02 // PERCEPTION</div>
+            <h3 className="text-sm font-bold text-white mb-1.5">Claude Computer Use Loop</h3>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              Claude 3.7 Sonnet inspects viewport frames and dispatches coordinate actions (`mouse_move`, `left_click`, `type`).
+            </p>
+          </div>
+          <div className="p-5 rounded-2xl border border-white/[0.08] surface-glass relative">
+            <div className="text-[11px] font-mono font-bold text-amber-400 mb-2">STAGE 03 // DIAGNOSIS</div>
+            <h3 className="text-sm font-bold text-white mb-1.5">Extended Thinking &amp; AST</h3>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              When a visual anomaly occurs, Claude cross-references the screenshot with your cached 200k-token repository AST.
+            </p>
+          </div>
+          <div className="p-5 rounded-2xl border border-white/[0.08] surface-glass relative">
+            <div className="text-[11px] font-mono font-bold text-emerald-400 mb-2">STAGE 04 // REMEDIATION</div>
+            <h3 className="text-sm font-bold text-white mb-1.5">Automated GitHub Fix PR</h3>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              SynapseQA commits a minimal, lint-verified CSS/JSX patch to a feature branch and attaches before/after visual diffs.
+            </p>
+          </div>
         </div>
       </section>
 
       {/* Interactive Live Agent Simulator */}
-      <section id="live-simulator" className="relative z-10 py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-zinc-850">
+      <section id="live-simulator" className="relative z-10 py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/[0.07]">
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-500/20 bg-orange-500/10 text-orange-400 text-xs font-semibold mb-3">
-            <Cpu className="w-3.5 h-3.5" /> LIVE SIMULATOR
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-500/20 bg-orange-500/10 text-orange-400 text-[11px] font-mono font-semibold uppercase tracking-wider mb-3">
+            <Cpu className="w-3.5 h-3.5" /> INTERACTIVE CLOUD WORKBENCH
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
-            Watch Claude Computer Use Audit In Real-Time
+            Inspect Claude Computer Use &amp; Prompt Caching Live
           </h2>
           <p className="mt-3 text-zinc-400 text-sm sm:text-base">
-            Select a test case below, or trigger the autonomous agent to observe how Claude translates user intent into mouse clicks, keyboard input, and automated bug reports.
+            Select a test scenario, customize the target URL, or inspect the raw Anthropic `computer_20250124` telemetry and ephemeral cache hit metrics.
           </p>
         </div>
 
         {/* Simulator Container */}
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-950/90 shadow-2xl overflow-hidden backdrop-blur-xl">
+        <div className="rounded-2xl border border-white/10 surface-elevated overflow-hidden">
           {/* Top Bar / Mac-like Browser Header */}
           <div className="border-b border-zinc-800 bg-zinc-900/70 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
@@ -342,31 +451,37 @@ export default function App() {
                 </div>
 
                 {/* Simulated Web Application Display */}
-                <div className="relative rounded-xl border border-zinc-800 bg-[#16181b] p-5 shadow-inner overflow-hidden">
-                  <div className="flex items-center justify-between border-b border-zinc-800 pb-3 mb-4">
+                <div className="relative rounded-xl border border-white/10 bg-[#121316] p-5 shadow-inner overflow-hidden">
+                  {/* Top HUD overlay showing Vision Coordinate Mapping */}
+                  <div className="flex items-center justify-between border-b border-white/[0.07] pb-3 mb-4">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded bg-zinc-700 flex items-center justify-center text-[10px] font-bold">AC</div>
+                      <div className="w-6 h-6 rounded-md bg-gradient-to-br from-orange-500/30 to-amber-500/20 border border-orange-500/40 flex items-center justify-center text-[10px] font-mono font-bold text-orange-300">AC</div>
                       <span className="text-xs font-semibold text-zinc-200">Acme Cloud Store</span>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-white/[0.06] text-zinc-400">
+                        1440x900 @1x
+                      </span>
                     </div>
-                    <div className="flex gap-2 text-[11px] text-zinc-400">
-                      <span>Products</span>
-                      <span>Pricing</span>
-                      <span className="text-orange-400 font-medium">Cart (2)</span>
+                    <div className="flex items-center gap-3 text-[11px] font-mono text-zinc-400">
+                      <span className="text-orange-400">bbox: [842, 310]</span>
+                      <span className="text-emerald-400">conf: 0.998</span>
                     </div>
                   </div>
 
                   {/* Simulated App Page based on scenario */}
                   {selectedScenario === 'checkout' && (
                     <div className="space-y-3 text-xs">
-                      <div className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 flex justify-between items-center">
+                      <div className="p-3 rounded-lg bg-zinc-900/90 border border-white/[0.06] flex justify-between items-center">
                         <div>
                           <div className="font-medium text-white">Pro Enterprise Plan (Monthly)</div>
-                          <div className="text-[11px] text-zinc-500">Seats: 5 users</div>
+                          <div className="text-[11px] text-zinc-500">Seats: 5 users &bull; Annual billing option</div>
                         </div>
                         <div className="text-right font-mono font-semibold text-zinc-200">$120.00</div>
                       </div>
 
-                      <div className="p-3 rounded-lg bg-zinc-900/60 border border-zinc-800/80 space-y-2">
+                      <div className="p-3 rounded-lg bg-zinc-900/60 border border-orange-500/30 ring-1 ring-orange-500/20 space-y-2 relative">
+                        <div className="absolute -top-2 right-2 px-1.5 py-0.2 bg-orange-500 text-[9px] font-mono font-bold text-white rounded">
+                          VISION TARGET #01
+                        </div>
                         <label className="text-[11px] text-zinc-400 block">Promo Code</label>
                         <div className="flex gap-2">
                           <input
@@ -374,9 +489,9 @@ export default function App() {
                             readOnly
                             value={currentStepIndex >= 3 ? "SPRING25" : ""}
                             placeholder="Enter promo code"
-                            className="w-full bg-zinc-950 border border-zinc-750 rounded px-2.5 py-1 text-xs text-zinc-200 focus:outline-none"
+                            className="w-full bg-zinc-950 border border-zinc-750 rounded px-2.5 py-1 text-xs font-mono text-zinc-200 focus:outline-none"
                           />
-                          <button className={`px-3 py-1 rounded text-xs font-medium ${currentStepIndex >= 3 ? 'bg-green-600 text-white' : 'bg-zinc-800 text-zinc-400'}`}>
+                          <button className={`px-3 py-1 rounded text-xs font-medium ${currentStepIndex >= 3 ? 'bg-emerald-600 text-white' : 'bg-zinc-800 text-zinc-400'}`}>
                             {currentStepIndex >= 3 ? 'Applied' : 'Apply'}
                           </button>
                         </div>
@@ -387,7 +502,7 @@ export default function App() {
                         )}
                       </div>
 
-                      <div className="border-t border-zinc-800 pt-2 flex justify-between text-xs font-semibold">
+                      <div className="border-t border-white/[0.07] pt-2.5 flex justify-between text-xs font-semibold">
                         <span className="text-zinc-400">Total Calculated:</span>
                         <span className="text-white font-mono text-sm">
                           {currentStepIndex >= 3 ? '$90.00' : '$120.00'}
@@ -398,19 +513,19 @@ export default function App() {
 
                   {selectedScenario === 'auth' && (
                     <div className="space-y-3 text-xs">
-                      <div className="p-3 rounded-lg bg-zinc-900 border border-zinc-800">
+                      <div className="p-3 rounded-lg bg-zinc-900 border border-white/[0.07]">
                         <div className="text-zinc-300 font-medium mb-1">Active Team Members (2/10)</div>
                         <div className="text-[11px] text-zinc-500">Testing Role Boundaries and Invite tokens</div>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-[11px]">
-                        <div className="p-2.5 rounded bg-zinc-950 border border-zinc-800">
+                        <div className="p-2.5 rounded bg-zinc-950 border border-white/[0.07]">
                           <span className="text-zinc-400 block">Current User:</span>
-                          <span className="font-semibold text-orange-400">admin@acme.inc</span>
+                          <span className="font-semibold text-orange-400 font-mono">admin@acme.inc</span>
                           <span className="text-[10px] text-emerald-400 block mt-1">Role: SuperAdmin</span>
                         </div>
-                        <div className="p-2.5 rounded bg-zinc-950 border border-zinc-800">
+                        <div className="p-2.5 rounded bg-zinc-950 border border-orange-500/30">
                           <span className="text-zinc-400 block">Invited Agent:</span>
-                          <span className="font-semibold text-zinc-300">qa-worker@agent.io</span>
+                          <span className="font-semibold text-zinc-300 font-mono">qa-worker@agent.io</span>
                           <span className="text-[10px] text-blue-400 block mt-1">Role: Editor (Verified)</span>
                         </div>
                       </div>
@@ -419,19 +534,19 @@ export default function App() {
 
                   {selectedScenario === 'bugfix' && (
                     <div className="space-y-3 text-xs">
-                      <div className="p-2.5 rounded-lg bg-amber-950/30 border border-amber-600/40 text-amber-200">
+                      <div className="p-2.5 rounded-lg bg-amber-950/30 border border-amber-500/40 text-amber-200">
                         <div className="font-semibold flex items-center gap-1">
-                          <AlertTriangle className="w-3.5 h-3.5 text-amber-400" /> Layout Regression Detected (Mobile DPR)
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-400" /> Layout Regression Detected (Mobile DPR 3x)
                         </div>
                         <div className="text-[11px] text-amber-300/80 mt-1">
-                          Bottom CTA button hidden beneath iPhone navigation bar.
+                          Bottom CTA button overlaps fixed iOS navigation bar by 18px.
                         </div>
                       </div>
                       {currentStepIndex >= 3 && (
-                        <div className="p-2.5 rounded-lg bg-emerald-950/30 border border-emerald-600/40 text-emerald-200 text-[11px] font-mono">
-                          <div className="text-emerald-400 font-semibold mb-1">Git Diff generated by Claude:</div>
-                          <div className="text-red-400">- className="checkout-footer"</div>
-                          <div className="text-emerald-400">+ className="checkout-footer pb-safe"</div>
+                        <div className="p-2.5 rounded-lg bg-emerald-950/30 border border-emerald-500/40 text-emerald-200 text-[11px] font-mono">
+                          <div className="text-emerald-400 font-semibold mb-1">// Verified AST Patch Committed (PR #142):</div>
+                          <div className="text-red-400">- className="checkout-footer fixed bottom-0"</div>
+                          <div className="text-emerald-400">+ className="checkout-footer fixed bottom-0 pb-safe"</div>
                         </div>
                       )}
                     </div>
@@ -449,11 +564,23 @@ export default function App() {
                       <div className="flex items-center gap-1">
                         <MousePointer className="w-5 h-5 text-orange-400 fill-orange-500 drop-shadow-md" />
                         <span className="px-1.5 py-0.5 rounded bg-orange-500 text-[9px] text-white font-mono font-bold shadow">
-                          Claude Action
+                          computer_20250124
                         </span>
                       </div>
                     </div>
                   )}
+                </div>
+
+                {/* Live Extended Thinking Monologue Bar */}
+                <div className="mt-3 px-3 py-2 rounded-lg border border-white/[0.06] bg-black/50 font-mono text-[11px] text-zinc-400 flex items-center justify-between gap-2">
+                  <div className="truncate">
+                    <span className="text-orange-400 font-semibold">&lt;thinking&gt;</span>{' '}
+                    {isRunningTest
+                      ? 'Analyzing viewport DOM bounding boxes and verifying visual contrast ratios...'
+                      : 'Ready: Ephemeral AST cache warm (48,200 tokens cached). Awaiting execution trigger.'}
+                    {' '}<span className="text-orange-400 font-semibold">&lt;/thinking&gt;</span>
+                  </div>
+                  <span className="text-[10px] text-zinc-500 shrink-0">budget: 4096 tok</span>
                 </div>
               </div>
 
@@ -584,87 +711,93 @@ anthropic-beta: computer-use-2025-01-24, prompt-caching-2024-07-31
       </section>
 
       {/* Feature Architecture: Why Claude Engine Wins */}
-      <section id="architecture" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-zinc-850">
+      <section id="architecture" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/[0.07]">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-500/20 bg-orange-500/10 text-orange-400 text-xs font-semibold mb-3">
-            <Layers className="w-3.5 h-3.5" /> ARCHITECTURAL ADVANTAGE
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-500/20 bg-orange-500/10 text-orange-400 text-[11px] font-mono font-semibold uppercase tracking-wider mb-3">
+            <Layers className="w-3.5 h-3.5" /> ANTHROPIC API PRIMITIVES
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
-            Built From Ground Up On Claude's Unique Capabilities
+            Built From the Ground Up on Claude's Unique Capabilities
           </h2>
           <p className="mt-3 text-zinc-400 text-sm sm:text-base">
-            Generic LLMs hallucinate code selectors. SynapseQA utilizes Anthropic Claude's specialized API primitives for resilient autonomous engineering.
+            Generic LLMs hallucinate brittle DOM selectors. SynapseQA is architected directly on Anthropic's flagship multimodal and caching primitives.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Card 1 */}
-          <div className="p-6 rounded-2xl border border-zinc-800 bg-zinc-900/30 backdrop-blur-sm hover:border-orange-500/40 transition-all">
-            <div className="w-12 h-12 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 mb-5">
-              <Eye className="w-6 h-6" />
+          <div className="p-7 rounded-2xl border border-white/[0.08] surface-glass hover:border-orange-500/40 transition-all flex flex-col justify-between">
+            <div>
+              <div className="w-11 h-11 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-orange-400 mb-5">
+                <Eye className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-white mb-2">Native Computer Use (`computer_20250124`)</h3>
+              <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed mb-5">
+                Unlike legacy Selenium or Playwright, Claude perceives raw viewport pixels, calculates sub-pixel click coordinates, and catches z-index overlaps that DOM scrapers miss.
+              </p>
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Native Computer Use API</h3>
-            <p className="text-sm text-zinc-400 leading-relaxed mb-4">
-              Unlike legacy Selenium or Playwright, Claude literally sees screen pixels, calculates precise click coordinates, and detects visual layout shifts that DOM scrapers miss entirely.
-            </p>
-            <div className="text-xs text-orange-400/90 font-mono bg-orange-950/30 p-2.5 rounded-lg border border-orange-800/30">
-              `tool_use: computer (action: mouse_move, coordinate: [842, 310])`
+            <div className="text-[11px] text-orange-300 font-mono bg-black/50 p-3 rounded-xl border border-white/[0.07]">
+              tool_use: computer (action: "left_click", coord: [842, 310])
             </div>
           </div>
 
           {/* Card 2 */}
-          <div className="p-6 rounded-2xl border border-zinc-800 bg-zinc-900/30 backdrop-blur-sm hover:border-orange-500/40 transition-all">
-            <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-5">
-              <Code2 className="w-6 h-6" />
+          <div className="p-7 rounded-2xl border border-white/[0.08] surface-glass hover:border-orange-500/40 transition-all flex flex-col justify-between">
+            <div>
+              <div className="w-11 h-11 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-5">
+                <Code2 className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-white mb-2">200k Context + Ephemeral Caching</h3>
+              <p className="text-sm text-zinc-400 leading-relaxed mb-5">
+                Your repository AST and design system tokens are pinned in Anthropic's Ephemeral Prompt Cache (`cache_control`), slashing token costs by 90% and latency by 80%.
+              </p>
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">200k Token Context Window</h3>
-            <p className="text-sm text-zinc-400 leading-relaxed mb-4">
-              When a bug is detected, SynapseQA feeds your entire Git repository AST and design tokens into Claude's context to generate accurate, zero-hallucination PR bugfixes.
-            </p>
-            <div className="text-xs text-amber-400/90 font-mono bg-amber-950/30 p-2.5 rounded-lg border border-amber-800/30">
-              Repo Context: 140 files ingested &bull; AST Diff Verified
+            <div className="text-[11px] text-amber-300 font-mono bg-black/50 p-3 rounded-xl border border-white/[0.07]">
+              cache_read_input_tokens: 48,200 &bull; Hit Ratio: 94.2%
             </div>
           </div>
 
           {/* Card 3 */}
-          <div className="p-6 rounded-2xl border border-zinc-800 bg-zinc-900/30 backdrop-blur-sm hover:border-orange-500/40 transition-all">
-            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-5">
-              <Shield className="w-6 h-6" />
+          <div className="p-7 rounded-2xl border border-white/[0.08] surface-glass hover:border-orange-500/40 transition-all flex flex-col justify-between">
+            <div>
+              <div className="w-11 h-11 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-5">
+                <Shield className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-white mb-2">Extended Thinking Root-Cause Analysis</h3>
+              <p className="text-sm text-zinc-400 leading-relaxed mb-5">
+                Before opening a GitHub Pull Request, Claude allocates up to 4,096 thinking tokens to verify CSS layout constraints, ARIA compliance, and responsive breakpoints.
+              </p>
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Constitutional AI & Zero Flakiness</h3>
-            <p className="text-sm text-zinc-400 leading-relaxed mb-4">
-              Equipped with self-correcting validation loops. If a button is loading, Claude automatically waits for network idle instead of failing the test pipeline with timeout errors.
-            </p>
-            <div className="text-xs text-emerald-400/90 font-mono bg-emerald-950/30 p-2.5 rounded-lg border border-emerald-800/30">
-              Confidence Score: 99.8% &bull; Flaky retries: 0
+            <div className="text-[11px] text-emerald-300 font-mono bg-black/50 p-3 rounded-xl border border-white/[0.07]">
+              thinking: &#123; type: "enabled", budget_tokens: 4096 &#125;
             </div>
           </div>
         </div>
       </section>
 
       {/* ROI Calculator Section */}
-      <section id="roi-calculator" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-zinc-850">
-        <div className="rounded-3xl border border-zinc-800 bg-gradient-to-b from-zinc-900/50 to-zinc-950 p-8 sm:p-12">
+      <section id="roi-calculator" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/[0.07]">
+        <div className="rounded-3xl border border-white/10 surface-elevated p-8 sm:p-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             {/* Left Sliders */}
             <div className="lg:col-span-7 space-y-8">
               <div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-500/20 bg-orange-500/10 text-orange-400 text-xs font-semibold mb-3">
-                  <Sliders className="w-3.5 h-3.5" /> IMPACT CALCULATOR
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-500/20 bg-orange-500/10 text-orange-400 text-[11px] font-mono font-semibold uppercase tracking-wider mb-3">
+                  <Sliders className="w-3.5 h-3.5" /> ENGINEERING ROI MODEL
                 </div>
                 <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-                  Calculate Your Team's QA Efficiency & Cost Savings
+                  Quantify Your QA Engineering Savings
                 </h2>
                 <p className="mt-2 text-zinc-400 text-sm">
-                  Engineering teams waste 15-25% of their total sprint capacity writing and maintaining brittle regression tests. See how much you reclaim with SynapseQA.
+                  Product squads spend 18–25% of sprint capacity debugging flaky end-to-end tests. Model your team's reclaimed velocity with SynapseQA.
                 </p>
               </div>
 
               {/* Slider 1 */}
               <div>
-                <div className="flex justify-between text-sm font-medium mb-2">
+                <div className="flex justify-between text-xs sm:text-sm font-medium mb-2">
                   <span className="text-zinc-300">Software Engineers on Team</span>
-                  <span className="text-orange-400 font-bold text-base">{devCount} devs</span>
+                  <span className="text-orange-400 font-mono font-bold text-sm">{devCount} engineers</span>
                 </div>
                 <input
                   type="range"
@@ -678,9 +811,9 @@ anthropic-beta: computer-use-2025-01-24, prompt-caching-2024-07-31
 
               {/* Slider 2 */}
               <div>
-                <div className="flex justify-between text-sm font-medium mb-2">
-                  <span className="text-zinc-300">Releases / Deploys Per Week</span>
-                  <span className="text-orange-400 font-bold text-base">{releasesPerWeek} deploys</span>
+                <div className="flex justify-between text-xs sm:text-sm font-medium mb-2">
+                  <span className="text-zinc-300">Production Deploys Per Week</span>
+                  <span className="text-orange-400 font-mono font-bold text-sm">{releasesPerWeek} deploys/wk</span>
                 </div>
                 <input
                   type="range"
@@ -694,9 +827,9 @@ anthropic-beta: computer-use-2025-01-24, prompt-caching-2024-07-31
 
               {/* Slider 3 */}
               <div>
-                <div className="flex justify-between text-sm font-medium mb-2">
-                  <span className="text-zinc-300">Average Blended Hourly Rate</span>
-                  <span className="text-orange-400 font-bold text-base">${hourlyRate} / hr</span>
+                <div className="flex justify-between text-xs sm:text-sm font-medium mb-2">
+                  <span className="text-zinc-300">Blended Engineering Hourly Cost</span>
+                  <span className="text-orange-400 font-mono font-bold text-sm">${hourlyRate}/hr</span>
                 </div>
                 <input
                   type="range"
@@ -711,33 +844,33 @@ anthropic-beta: computer-use-2025-01-24, prompt-caching-2024-07-31
             </div>
 
             {/* Right Result Card */}
-            <div className="lg:col-span-5 p-8 rounded-2xl border border-orange-500/30 bg-orange-950/20 backdrop-blur-md text-center">
-              <div className="text-xs font-semibold uppercase tracking-wider text-orange-400 mb-1">
-                Estimated Monthly Savings
+            <div className="lg:col-span-5 p-8 rounded-2xl border border-orange-500/30 bg-gradient-to-b from-orange-950/25 to-zinc-950/90 backdrop-blur-md text-center shadow-2xl">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-orange-400 mb-1">
+                Projected Monthly Net Savings
               </div>
-              <div className="text-4xl sm:text-5xl font-black text-white tracking-tight my-4">
+              <div className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight my-4 font-mono">
                 ${dollarsSavedMonthly.toLocaleString()}
-                <span className="text-xs text-zinc-400 font-normal"> / mo</span>
+                <span className="text-xs text-zinc-400 font-sans font-normal"> / mo</span>
               </div>
-              <div className="text-sm text-zinc-300 mb-6 font-medium">
-                Reclaiming <strong className="text-orange-400">{hoursSavedMonthly} engineering hours</strong> every month.
+              <div className="text-xs sm:text-sm text-zinc-300 mb-6 font-medium">
+                Reclaiming <strong className="text-orange-400 font-mono">{hoursSavedMonthly} hrs</strong> of senior engineering time monthly.
               </div>
 
-              <div className="p-4 rounded-xl bg-black/40 border border-zinc-800 text-left space-y-2 text-xs text-zinc-400">
-                <div className="flex items-center gap-2 text-zinc-200">
-                  <Check className="w-4 h-4 text-emerald-400" /> 100% CI/CD automated pipeline
+              <div className="p-4 rounded-xl bg-black/50 border border-white/[0.07] text-left space-y-2.5 text-xs text-zinc-300">
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0" /> 100% CI/CD automated PR verification
                 </div>
-                <div className="flex items-center gap-2 text-zinc-200">
-                  <Check className="w-4 h-4 text-emerald-400" /> Zero Cypress/Playwright maintenance
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0" /> Zero XPath / CSS selector maintenance
                 </div>
-                <div className="flex items-center gap-2 text-zinc-200">
-                  <Check className="w-4 h-4 text-emerald-400" /> Automatic bug PR pull-requests
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0" /> Ephemeral Prompt Caching (-90% API cost)
                 </div>
               </div>
 
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="mt-6 w-full py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm shadow-lg shadow-orange-500/25 transition-all cursor-pointer"
+                className="mt-6 w-full py-3 rounded-xl bg-gradient-to-b from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-orange-500/25 border border-orange-400/30 transition-all cursor-pointer"
               >
                 Claim Free Pilot Access &rarr;
               </button>
@@ -747,172 +880,174 @@ anthropic-beta: computer-use-2025-01-24, prompt-caching-2024-07-31
       </section>
 
       {/* Comparison Matrix */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-zinc-850">
-        <div className="text-center max-w-3xl mx-auto mb-16">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/[0.07]">
+        <div className="text-center max-w-3xl mx-auto mb-14">
           <h2 className="text-3xl font-bold text-white tracking-tight">
-            How SynapseQA Compares To Legacy Solutions
+            Architectural Comparison
           </h2>
           <p className="mt-2 text-zinc-400 text-sm">
-            Why modern engineering teams are ditching fragile DOM-based tests for autonomous multimodal agents.
+            Why high-velocity teams replace brittle DOM test runners with Claude Computer Use agents.
           </p>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm border-collapse">
-            <thead>
-              <tr className="border-b border-zinc-800 text-xs text-zinc-400 uppercase">
-                <th className="py-4 px-4 font-semibold">Capabilities</th>
-                <th className="py-4 px-4 font-semibold text-orange-400 bg-orange-500/5 rounded-t-lg">SynapseQA (Claude)</th>
-                <th className="py-4 px-4 font-semibold">Cypress / Playwright</th>
-                <th className="py-4 px-4 font-semibold">Manual QA Team</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-800 text-zinc-300">
-              <tr>
-                <td className="py-4 px-4 font-medium text-white">Test Creation Method</td>
-                <td className="py-4 px-4 text-orange-300 font-semibold bg-orange-500/5">Plain English Prompt</td>
-                <td className="py-4 px-4 text-zinc-400">Complex Code / Selectors</td>
-                <td className="py-4 px-4 text-zinc-400">Manual Spreadsheets</td>
-              </tr>
-              <tr>
-                <td className="py-4 px-4 font-medium text-white">UI Refactor Resilience</td>
-                <td className="py-4 px-4 text-emerald-400 font-semibold bg-orange-500/5">100% (Visual Perception)</td>
-                <td className="py-4 px-4 text-red-400">Breaks on class/DOM rename</td>
-                <td className="py-4 px-4 text-zinc-400">High but Slow</td>
-              </tr>
-              <tr>
-                <td className="py-4 px-4 font-medium text-white">Execution Speed</td>
-                <td className="py-4 px-4 text-orange-300 font-semibold bg-orange-500/5">&lt; 15 seconds per flow</td>
-                <td className="py-4 px-4 text-zinc-400">Fast (if not broken)</td>
-                <td className="py-4 px-4 text-red-400">Hours to Days</td>
-              </tr>
-              <tr>
-                <td className="py-4 px-4 font-medium text-white">Auto-Generate Bugfix PR</td>
-                <td className="py-4 px-4 text-emerald-400 font-semibold bg-orange-500/5">Yes (Full Git Diff)</td>
-                <td className="py-4 px-4 text-red-400">No</td>
-                <td className="py-4 px-4 text-red-400">No (File Jira ticket)</td>
-              </tr>
-              <tr>
-                <td className="py-4 px-4 font-medium text-white">Cost per 1,000 runs</td>
-                <td className="py-4 px-4 text-orange-300 font-semibold bg-orange-500/5">~$3.20 API Tokens</td>
-                <td className="py-4 px-4 text-zinc-400">High Cloud Grid bill</td>
-                <td className="py-4 px-4 text-red-400">$3,000+</td>
-              </tr>
-            </tbody>
-          </table>
+        <div className="rounded-2xl border border-white/10 surface-glass overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs sm:text-sm border-collapse">
+              <thead>
+                <tr className="border-b border-white/10 text-[11px] font-mono text-zinc-400 uppercase bg-black/40">
+                  <th className="py-4 px-6 font-semibold">Capability</th>
+                  <th className="py-4 px-6 font-semibold text-orange-400 bg-orange-500/[0.07]">SynapseQA (Claude 3.7)</th>
+                  <th className="py-4 px-6 font-semibold">Cypress / Playwright</th>
+                  <th className="py-4 px-6 font-semibold">Manual QA Squad</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/[0.06] text-zinc-300">
+                <tr>
+                  <td className="py-4 px-6 font-medium text-white">Test Authoring</td>
+                  <td className="py-4 px-6 text-orange-300 font-semibold bg-orange-500/[0.04]">Plain English Intent</td>
+                  <td className="py-4 px-6 text-zinc-400"> Fragile CSS / XPath Selectors</td>
+                  <td className="py-4 px-6 text-zinc-400">Manual Test Plans</td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-6 font-medium text-white">UI Refactor Resilience</td>
+                  <td className="py-4 px-6 text-emerald-400 font-semibold bg-orange-500/[0.04]">100% (Visual Perception)</td>
+                  <td className="py-4 px-6 text-red-400">Breaks on DOM / Class rename</td>
+                  <td className="py-4 px-6 text-zinc-400">High but Slow</td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-6 font-medium text-white">Median Execution Time</td>
+                  <td className="py-4 px-6 text-orange-300 font-mono font-semibold bg-orange-500/[0.04]">&lt; 15s (Parallel VMs)</td>
+                  <td className="py-4 px-6 text-zinc-400">Fast (until selector breaks)</td>
+                  <td className="py-4 px-6 text-red-400">Hours to Days</td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-6 font-medium text-white">Automated Bugfix PRs</td>
+                  <td className="py-4 px-6 text-emerald-400 font-semibold bg-orange-500/[0.04]">Verified AST Git Diff</td>
+                  <td className="py-4 px-6 text-red-400">None (Stacktrace only)</td>
+                  <td className="py-4 px-6 text-red-400">Manual Jira Ticket</td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-6 font-medium text-white">Cost per 1,000 Journeys</td>
+                  <td className="py-4 px-6 text-orange-300 font-mono font-semibold bg-orange-500/[0.04]">~$3.20 (Prompt Cached)</td>
+                  <td className="py-4 px-6 text-zinc-400">High CI Runner Bill</td>
+                  <td className="py-4 px-6 text-red-400">$3,000+</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-zinc-850">
+      <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/[0.07]">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-500/20 bg-orange-500/10 text-orange-400 text-xs font-semibold mb-3">
-            <DollarSign className="w-3.5 h-3.5" /> TRANSPARENT PLANS
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-500/20 bg-orange-500/10 text-orange-400 text-[11px] font-mono font-semibold uppercase tracking-wider mb-3">
+            <DollarSign className="w-3.5 h-3.5" /> PREDICTABLE TIERS
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
-            Predictable Pricing for Rapidly Shipping Teams
+            Transparent Pricing for High-Velocity Teams
           </h2>
           <p className="mt-3 text-zinc-400 text-sm sm:text-base">
-            Start with our generous free tier, upgrade as your test suite scales.
+            Start free with our open CLI runner, or scale effortlessly on our managed Firecracker cluster.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Plan 1 */}
-          <div className="p-8 rounded-2xl border border-zinc-800 bg-zinc-900/30 backdrop-blur-sm flex flex-col justify-between">
+          <div className="p-8 rounded-2xl border border-white/[0.08] surface-glass flex flex-col justify-between">
             <div>
-              <div className="text-base font-semibold text-white">Hacker & Indie</div>
-              <div className="text-xs text-zinc-400 mt-1">For side projects & early-stage MVPs</div>
-              <div className="text-3xl font-extrabold text-white my-6">$0 <span className="text-xs text-zinc-400 font-normal">/ forever</span></div>
+              <div className="text-base font-bold text-white">Developer &amp; OSS</div>
+              <div className="text-xs text-zinc-400 mt-1">For open-source &amp; early prototypes</div>
+              <div className="text-3xl font-extrabold text-white my-6 font-mono">$0 <span className="text-xs text-zinc-400 font-sans font-normal">/ forever</span></div>
               <ul className="space-y-3 text-xs text-zinc-300">
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> 100 Autonomous Agent Runs/mo</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Claude 3.5 Sonnet Engine</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> CLI & Local Headless runner</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Community Discord support</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> 100 Autonomous Agent Runs/mo</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> Claude 3.7 Sonnet CLI Runner</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> Ephemeral Prompt Caching enabled</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> Community Discord &amp; GitHub support</li>
               </ul>
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="mt-8 w-full py-2.5 rounded-xl border border-zinc-700 hover:border-zinc-500 text-white font-medium text-xs transition-colors cursor-pointer"
+              className="mt-8 w-full py-2.5 rounded-xl border border-white/10 hover:border-white/25 bg-white/[0.03] hover:bg-white/[0.07] text-white font-medium text-xs transition-all cursor-pointer"
             >
-              Get Started Free
+              Deploy Free CLI
             </button>
           </div>
 
           {/* Plan 2: Featured */}
-          <div className="p-8 rounded-2xl border-2 border-orange-500 bg-orange-950/20 backdrop-blur-md relative flex flex-col justify-between shadow-2xl shadow-orange-500/10">
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-orange-500 text-white font-bold text-[10px] uppercase tracking-wider">
+          <div className="p-8 rounded-2xl border-2 border-orange-500/80 bg-gradient-to-b from-orange-950/25 to-zinc-950/95 backdrop-blur-md relative flex flex-col justify-between shadow-2xl shadow-orange-500/10">
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-mono font-bold text-[10px] uppercase tracking-wider shadow">
               Most Popular
             </div>
             <div>
-              <div className="text-base font-semibold text-white">Startup Pro</div>
-              <div className="text-xs text-zinc-400 mt-1">For fast-moving SaaS & engineering squads</div>
-              <div className="text-3xl font-extrabold text-white my-6">$99 <span className="text-xs text-zinc-400 font-normal">/ month</span></div>
+              <div className="text-base font-bold text-white">Startup Pro</div>
+              <div className="text-xs text-zinc-400 mt-1">For shipping SaaS &amp; product engineering teams</div>
+              <div className="text-3xl font-extrabold text-white my-6 font-mono">$99 <span className="text-xs text-zinc-400 font-sans font-normal">/ month</span></div>
               <ul className="space-y-3 text-xs text-zinc-200">
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> 2,500 Agent Runs/mo</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Claude 3.7 Sonnet Computer Use</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Automated GitHub Fix PR generation</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Cross-browser & Mobile DPR emulation</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Priority API Queue & Slack support</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> 2,500 Managed Agent Runs/mo</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> Claude 3.7 Sonnet Computer Use + Extended Thinking</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> Automated GitHub Fix PR generation</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> Desktop &amp; Mobile DPR 3x Emulation</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> Priority Webhook Queue &amp; Slack alerts</li>
               </ul>
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="mt-8 w-full py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-xs shadow-lg shadow-orange-500/30 transition-all cursor-pointer"
+              className="mt-8 w-full py-2.5 rounded-xl bg-gradient-to-b from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold text-xs shadow-lg shadow-orange-500/25 border border-orange-400/30 transition-all cursor-pointer"
             >
               Start 14-Day Free Pilot
             </button>
           </div>
 
           {/* Plan 3 */}
-          <div className="p-8 rounded-2xl border border-zinc-800 bg-zinc-900/30 backdrop-blur-sm flex flex-col justify-between">
+          <div className="p-8 rounded-2xl border border-white/[0.08] surface-glass flex flex-col justify-between">
             <div>
-              <div className="text-base font-semibold text-white">Enterprise Scale</div>
-              <div className="text-xs text-zinc-400 mt-1">For regulated teams requiring private VPC</div>
-              <div className="text-3xl font-extrabold text-white my-6">Custom <span className="text-xs text-zinc-400 font-normal">/ billed annually</span></div>
+              <div className="text-base font-bold text-white">Enterprise VPC</div>
+              <div className="text-xs text-zinc-400 mt-1">For regulated organizations requiring self-hosted runners</div>
+              <div className="text-3xl font-extrabold text-white my-6 font-mono">Custom <span className="text-xs text-zinc-400 font-sans font-normal">/ annual</span></div>
               <ul className="space-y-3 text-xs text-zinc-300">
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Unlimited Autonomous Runs</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Self-hosted On-Premises Runner</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> SOC2 Type II, HIPAA & GDPR Compliant</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Dedicated Anthropic Applied AI Engineer</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> Unlimited Parallel Firecracker Workers</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> Private VPC / On-Premises Deployment</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> Zero Data Retention (ZDR) Anthropic API</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> Dedicated Forward-Deployed Engineer</li>
               </ul>
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="mt-8 w-full py-2.5 rounded-xl border border-zinc-700 hover:border-zinc-500 text-white font-medium text-xs transition-colors cursor-pointer"
+              className="mt-8 w-full py-2.5 rounded-xl border border-white/10 hover:border-white/25 bg-white/[0.03] hover:bg-white/[0.07] text-white font-medium text-xs transition-all cursor-pointer"
             >
-              Contact Sales
+              Contact Enterprise Engineering
             </button>
           </div>
         </div>
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto border-t border-zinc-850">
-        <h2 className="text-3xl font-bold text-white text-center mb-12">Frequently Asked Questions</h2>
+      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto border-t border-white/[0.07]">
+        <h2 className="text-3xl font-bold text-white text-center mb-12 tracking-tight">Technical FAQ</h2>
         <div className="space-y-4">
-          <div className="p-5 rounded-xl border border-zinc-800 bg-zinc-900/30">
+          <div className="p-6 rounded-2xl border border-white/[0.08] surface-glass">
             <h4 className="text-sm font-semibold text-white flex items-center gap-2">
-              <HelpCircle className="w-4 h-4 text-orange-400" /> How is this different from Playwright or Cypress?
+              <HelpCircle className="w-4 h-4 text-orange-400 shrink-0" /> How is SynapseQA different from Playwright or Cypress?
             </h4>
-            <p className="mt-2 text-xs text-zinc-400 leading-relaxed">
-              Playwright and Cypress require engineers to code fragile CSS selectors, test fixtures, and mock states. When your team alters a button class or layout, tests fail immediately. SynapseQA uses Claude Computer Use to perceive visual elements exactly as human eyes do—zero selector code required.
+            <p className="mt-2 text-xs sm:text-sm text-zinc-400 leading-relaxed">
+              Playwright and Cypress require engineers to write and maintain brittle CSS/XPath selectors. Whenever a class name or DOM wrapper changes, tests break. SynapseQA uses Anthropic's `computer_20250124` tool to visually perceive the rendered screen and execute coordinate actions—requiring zero selector code.
             </p>
           </div>
-          <div className="p-5 rounded-xl border border-zinc-800 bg-zinc-900/30">
+          <div className="p-6 rounded-2xl border border-white/[0.08] surface-glass">
             <h4 className="text-sm font-semibold text-white flex items-center gap-2">
-              <HelpCircle className="w-4 h-4 text-orange-400" /> How does it handle sensitive customer data & passwords?
+              <HelpCircle className="w-4 h-4 text-orange-400 shrink-0" /> How do you keep multi-step Computer Use token costs low?
             </h4>
-            <p className="mt-2 text-xs text-zinc-400 leading-relaxed">
-              All browser workers run inside ephemeral, hardware-isolated Firecracker micro-VMs that terminate immediately post-run. Sensitive tokens and OAuth credentials can be injected via encrypted environment variables with zero plaintext logging to Anthropic.
+            <p className="mt-2 text-xs sm:text-sm text-zinc-400 leading-relaxed">
+              We leverage Anthropic's Ephemeral Prompt Caching (`cache_control: &#123;"type": "ephemeral"&#125;`) across the system prompt, tool definitions, and repository AST context. Across a 10-step browser test journey, we achieve a 94.2% cache hit ratio, reducing token expenditure by nearly 90%.
             </p>
           </div>
-          <div className="p-5 rounded-xl border border-zinc-800 bg-zinc-900/30">
+          <div className="p-6 rounded-2xl border border-white/[0.08] surface-glass">
             <h4 className="text-sm font-semibold text-white flex items-center gap-2">
-              <HelpCircle className="w-4 h-4 text-orange-400" /> Can it integrate into GitHub Actions or GitLab CI?
+              <HelpCircle className="w-4 h-4 text-orange-400 shrink-0" /> How does it handle staging authentication and secrets?
             </h4>
-            <p className="mt-2 text-xs text-zinc-400 leading-relaxed">
-              Yes! Our lightweight CLI (`npx @synapseqa/cli run`) drops into any standard GitHub Actions YAML workflow. Tests trigger automatically on every Pull Request or preview deployment.
+            <p className="mt-2 text-xs sm:text-sm text-zinc-400 leading-relaxed">
+              Each test run executes inside an ephemeral, hardware-isolated Firecracker micro-VM that is destroyed immediately after completion. Credentials and OAuth tokens are injected at the browser context layer with Zero Data Retention (ZDR) headers forwarded to Anthropic.
             </p>
           </div>
         </div>
