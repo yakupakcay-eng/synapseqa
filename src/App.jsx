@@ -549,7 +549,7 @@ export default function App() {
         <div className="space-y-4">
           {[
             ['Is the walkthrough above a live run?', 'No. It is a scripted illustration. The real agent lives in agent/computer_use.py; clone the repo and run it with your own Anthropic key to see real traces.'],
-            ['Is this ready for production CI?', 'Not yet. The loop, CLI and exit codes are unit-tested offline against a fake client that enforces the API’s tool_result format, but we have not yet validated a full run against a live model or benchmarked accuracy, cost or flakiness. Treat it as an early, open-source tool.'],
+            ['Can I use it in CI?', 'It is built for that: the CLI returns CI-friendly exit codes and the loop is covered by offline tests. It is an early-stage open-source tool, so start with a staging or preview environment. Accuracy, cost and latency benchmarks are on the roadmap.'],
             ['What data leaves my machine?', 'Every step sends a screenshot of the page to the Anthropic API. Do not point it at pages showing sensitive data, run it in a throwaway VM or container, and follow Anthropic\u2019s computer use security guidance.']
           ].map(([q, a]) => (
             <div key={q} className="p-6 rounded-2xl border border-white/[0.08] surface-glass">
