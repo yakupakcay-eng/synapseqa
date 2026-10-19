@@ -3,7 +3,7 @@
 /**
  * SynapseQA CLI: a thin launcher for the Python agent in ../../agent/computer_use.py.
  * It runs the real agent loop (Playwright + Claude computer use) and forwards the exit code:
- *   0 = PASS or DRY_RUN, 1 = FAIL / INCONCLUSIVE, 2 = error.
+ *   0 = PASS or DRY_RUN, 1 = FAIL / INCONCLUSIVE, 2 = error (including a missing ANTHROPIC_API_KEY).
  */
 
 import { spawnSync } from 'node:child_process';
@@ -29,7 +29,7 @@ Setup (once):
   pip install -r agent/requirements.txt && playwright install chromium
   export ANTHROPIC_API_KEY=...        # PowerShell: $env:ANTHROPIC_API_KEY="..."
 
-Without ANTHROPIC_API_KEY the agent does a dry run: no model call, nothing is tested.`);
+Without ANTHROPIC_API_KEY the run exits 2 (nothing is tested). Pass --dry-run to skip the model on purpose.`);
   process.exit(0);
 }
 

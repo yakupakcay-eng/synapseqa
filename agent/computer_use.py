@@ -38,7 +38,10 @@ except ImportError:  # pragma: no cover - optional until a real run is requested
 
 
 DEFAULT_MODEL = "claude-sonnet-5-5"
-COMPUTER_TOOLSET = {"type": "computer_toolset_20260801"}
+# `zoom` is turned off because the dispatcher below does not implement it.
+COMPUTER_TOOLSET = {"type": "computer_toolset_20260801", "configs": {"zoom": {"enabled": False}}}
+TOOLSET_NAME = "computer"
+VERDICT_RE = re.compile(r"^\s*`?VERDICT:\s*(PASS|FAIL)\b", re.IGNORECASE | re.MULTILINE)
 
 SYSTEM_PROMPT = (
     "You are SynapseQA, a QA engineer operating a real web browser through the computer use tool. "
@@ -105,12 +108,14 @@ class SynapseAgent:
         viewport_width: int = 1440,
         viewport_height: int = 900,
         client: Any = None,
+        settle_seconds: float = 0.4,
     ):
         self.api_key = api_key or os.getenv("ANTHROPIC_API_KEY", "")
         self.model = model
         self.viewport_width = viewport_width
         self.viewport_height = viewport_height
         self._client = client
+        self.settle_seconds = settle_seconds
 
     # ------------------------------------------------------------------ setup
     @property
@@ -143,6 +148,15 @@ class SynapseAgent:
     async def screenshot_b64(page: Any) -> str:
         return base64.b64encode(await page.screenshot(type="png")).decode("ascii")
 
+    async def _settle(self, page: Any) -> None:
+        """Give the page a moment to react before the next screenshot."""
+        try:
+            await page.wait_for_load_state("load", timeout=3000)
+        except Exception:
+            pass
+        if self.settle_seconds:
+            await asyncio.sleep(self.settle_seconds)
+
     async def execute_tool(self, page: Any, name: str, args: Dict[str, Any]) -> Optional[str]:
         """Run one computer-use member tool. Returns an error string, or None on success."""
         coord = args.get("coordinate") or args.get("coordinates")
@@ -151,11 +165,20 @@ class SynapseAgent:
 
         if name == "screenshot":
             return None
-        if name in ("left_click", "click", "right_click", "double_click", "middle_click"):
+        if name in ("left_click", "click", "right_click", "double_click", "triple_click", "middle_click"):
             if not has_xy:
                 return f"{name} requires a coordinate"
             button = "right" if name == "right_click" else "middle" if name == "middle_click" else "left"
-            await page.mouse.click(x, y, button=button, click_count=2 if name == "double_click" else 1)
+            clicks = {"double_click": 2, "triple_click": 3}.get(name, 1)
+            await page.mouse.click(x, y, button=button, click_count=clicks)
+        elif name == "left_click_drag":
+            start = args.get("start_coordinate")
+            if not (isinstance(start, (list, tuple)) and len(start) >= 2 and has_xy):
+                return "left_click_drag requires start_coordinate and coordinate"
+            await page.mouse.move(start[0], start[1])
+            await page.mouse.down()
+            await page.mouse.move(x, y)
+            await page.mouse.up()
         elif name == "mouse_move":
             if not has_xy:
                 return "mouse_move requires a coordinate"
@@ -192,10 +215,13 @@ class SynapseAgent:
         Playwright page (used by the tests); otherwise a headless Chromium is launched.
         """
         base = {"target": target_url, "model": self.model, "goal": goal}
-        if dry_run or self.client is None:
-            reason = "dry run requested" if dry_run else "ANTHROPIC_API_KEY is not set"
+        if dry_run:
             return {**base, "status": "DRY_RUN", "steps": [], "usage": asdict(Usage()),
-                    "report": f"No model was called ({reason}). Nothing was tested."}
+                    "report": "No model was called (dry run requested). Nothing was tested."}
+        if self.client is None:
+            return {**base, "status": "NO_API_KEY", "steps": [], "usage": asdict(Usage()),
+                    "report": "No model was called: ANTHROPIC_API_KEY is not set (or the anthropic package "
+                              "is missing). Nothing was tested. Use --dry-run to skip the model on purpose."}
 
         owns_browser = page is None
         pw = browser = None
@@ -226,6 +252,10 @@ class SynapseAgent:
                 usage.add(getattr(response, "usage", None))
                 messages.append({"role": "assistant", "content": response.content})
 
+                if getattr(response, "stop_reason", None) == "refusal":
+                    report = "The model declined this request (stop_reason: refusal). Nothing was concluded."
+                    break
+
                 tool_uses = [b for b in response.content if getattr(b, "type", "") == "tool_use"]
                 texts = [getattr(b, "text", "") for b in response.content if getattr(b, "type", "") == "text"]
                 if not tool_uses:
@@ -237,23 +267,34 @@ class SynapseAgent:
                     args = dict(getattr(block, "input", {}) or {})
                     error = await self.execute_tool(page, block.name, args)
                     steps.append(StepRecord(len(steps) + 1, block.name, args, error))
-                    content: List[Dict[str, Any]] = [{
-                        "type": "image",
-                        "source": {"type": "base64", "media_type": "image/png",
-                                   "data": await self.screenshot_b64(page)},
-                    }]
+                    if block.name != "screenshot":
+                        await self._settle(page)
                     if error:
-                        content.insert(0, {"type": "text", "text": error})
+                        content: List[Dict[str, Any]] = [{"type": "text", "text": error}]
+                    elif block.name == "screenshot":
+                        content = [{
+                            "type": "image",
+                            "source": {"type": "base64", "media_type": "image/png",
+                                       "data": await self.screenshot_b64(page)},
+                        }]
+                    else:
+                        content = [{"type": "text", "text": "OK"}]
+                    # The computer toolset rejects results that omit toolset_name.
                     results.append({"type": "tool_result", "tool_use_id": block.id,
-                                    "content": content, **({"is_error": True} if error else {})})
+                                    "toolset_name": TOOLSET_NAME, "content": content,
+                                    **({"is_error": True} if error else {})})
                 messages.append({"role": "user", "content": results})
         finally:
             if owns_browser and browser is not None:
                 await browser.close()
                 await pw.stop()
 
-        match = re.search(r"VERDICT:\s*(PASS|FAIL)", report, re.IGNORECASE)
-        status = match.group(1).upper() if match else "INCONCLUSIVE"
+        matches = VERDICT_RE.findall(report)
+        status = matches[-1].upper() if matches else "INCONCLUSIVE"
+        if status == "PASS" and not steps:
+            # A PASS without a single browser action is not evidence of anything.
+            status = "INCONCLUSIVE"
+            report += "\n[SynapseQA: PASS ignored because the model performed no browser actions.]"
         return {**base, "status": status, "steps": [asdict(s) for s in steps], "report": report,
                 "usage": {**asdict(usage), "cache_read_ratio": usage.cache_read_ratio}}
 
@@ -274,6 +315,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         print(f"synapseqa: {exc}", file=sys.stderr)
         return 2
     print(json.dumps(result, indent=2))
+    if result["status"] == "NO_API_KEY":
+        print(f"synapseqa: {result['report']}", file=sys.stderr)
+        return 2
     return 1 if result["status"] in ("FAIL", "INCONCLUSIVE") else 0
 
 

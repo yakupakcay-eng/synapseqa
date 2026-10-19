@@ -8,6 +8,12 @@ Chromium browser from screenshots and reports `VERDICT: PASS` or `VERDICT: FAIL`
 
 Early-stage, open source. Site: <https://www.synapseqa.me> &middot; Contact: founder@synapseqa.me
 
+## Who it is for
+
+Small teams that ship a web UI but have no one writing and maintaining a full end-to-end suite. The goal is a cheap
+"does the main journey still work and does it look right?" check you describe in one sentence, run on a preview
+deploy or in CI, next to (not instead of) deterministic Playwright/Cypress tests.
+
 ## How it works
 
 ```
@@ -18,11 +24,32 @@ Playwright (headless Chromium)  <->  Claude Messages API
 
 1. Chromium opens the target page in a fixed viewport.
 2. Claude receives the goal and answers with `tool_use` blocks (`screenshot`, `left_click`, `type`, `scroll`, ...).
-3. We run each action in the browser and reply with a `tool_result` that contains a fresh screenshot.
+3. We run each action in the browser and reply with a `tool_result` (a short `OK`, or a screenshot when Claude asks for one).
 4. When Claude stops calling tools it writes a report ending in `VERDICT: PASS|FAIL`.
 
 The system prompt is identical on every turn, so it carries `cache_control: {"type": "ephemeral"}`. Token usage,
 including `cache_read_input_tokens`, is read from the API response and returned with each run. Code: [`agent/computer_use.py`](agent/computer_use.py).
+
+## What a result looks like
+
+Shape of the JSON a run prints (an **illustration of the format**, not output from a real run):
+
+```json
+{
+  "target": "https://example.com",
+  "model": "claude-sonnet-5-5",
+  "goal": "Smoke-test the sign-up flow",
+  "status": "FAIL",
+  "steps": [
+    {"index": 1, "tool": "screenshot", "input": {}, "error": null},
+    {"index": 2, "tool": "left_click", "input": {"coordinate": [640, 412]}, "error": null}
+  ],
+  "report": "The Sign up button is partly covered by the cookie bar...
+VERDICT: FAIL",
+  "usage": {"input_tokens": 0, "output_tokens": 0, "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0, "cache_read_ratio": null}
+}
+```
 
 ## Run it
 
@@ -33,8 +60,8 @@ export ANTHROPIC_API_KEY=sk-ant-...      # PowerShell: $env:ANTHROPIC_API_KEY="s
 node cli/bin/synapseqa.js --target=https://example.com --goal="Smoke-test the sign-up flow"
 ```
 
-Without `ANTHROPIC_API_KEY` the agent performs a **dry run**: it states that no model was called and nothing was tested.
-Exit codes: `0` PASS/DRY_RUN, `1` FAIL/INCONCLUSIVE, `2` error.
+Without `ANTHROPIC_API_KEY` the run stops with exit code `2` and says nothing was tested, so a CI job cannot go green by accident. `--dry-run` skips the model on purpose.
+Exit codes: `0` PASS or `--dry-run`, `1` FAIL/INCONCLUSIVE, `2` error (including a missing key).
 
 Python:
 
@@ -60,7 +87,7 @@ npm ci && npm run lint && npm run build   # website
 
 | In the repo today | Not done yet |
 | :--- | :--- |
-| Multi-turn loop with full message history (tool_use / tool_result) | Benchmarks on real apps (accuracy, cost, latency, flakiness are **not measured**) |
+| Multi-turn loop with full message history (tool_use / tool_result); offline tests enforce the API's `toolset_name` rule | Benchmarks on real apps (accuracy, cost, latency, flakiness are **not measured**; a full run against a live model has not been recorded yet) |
 | Browser action dispatcher (click, type, key, scroll, wait) | Repo-aware defect localisation |
 | CLI with CI-friendly exit codes | Hosted runner, parallel runs, trace viewer |
 | Offline tests run in CI | `agent/github_pr.py` opens a PR from a model-proposed patch; implemented but not yet run against a live repo |

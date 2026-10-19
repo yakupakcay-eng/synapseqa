@@ -70,7 +70,7 @@ const works = [
   'Browser action dispatcher on headless Chromium (click, type, key, scroll, wait)',
   'CLI launcher with PASS / FAIL exit codes for CI',
   'Offline unit tests with a scripted fake Claude client, run in CI',
-  'Honest dry-run: with no API key it says nothing was tested'
+  'No silent passes: a missing API key exits 2, and a PASS with zero browser actions counts as inconclusive'
 ];
 const planned = [
   'Benchmarks on real apps: accuracy, cost per run, latency (not measured yet)',
@@ -163,6 +163,7 @@ export default function App() {
           </div>
 
           <nav className="hidden md:flex items-center gap-7 text-xs font-medium text-zinc-400">
+            <a href="#who" className="hover:text-white transition-colors">Who it is for</a>
             <a href="#how-it-works" className="hover:text-white transition-colors">How it works</a>
             <a href="#walkthrough" className="hover:text-white transition-colors">Walkthrough</a>
             <a href="#status" className="hover:text-white transition-colors">Status</a>
@@ -266,7 +267,7 @@ export default function App() {
           {[
             ['01', 'Browser', 'Headless Chromium opens your page in a fixed viewport via Playwright.', 'text-orange-400'],
             ['02', 'Perceive', 'A screenshot goes to Claude with the computer use toolset. Claude answers with tool_use blocks.', 'text-orange-400'],
-            ['03', 'Act', 'We execute each action (click, type, scroll) and return a tool_result with a fresh screenshot.', 'text-amber-400'],
+            ['03', 'Act', 'We execute each action (click, type, scroll) and return a tool_result. Claude asks for a screenshot when it needs to see the page.', 'text-amber-400'],
             ['04', 'Report', 'When Claude stops calling tools it writes a report ending in VERDICT: PASS or FAIL. The CLI exits 0 or 1.', 'text-emerald-400']
           ].map(([n, title, text, color]) => (
             <div key={n} className="p-5 rounded-2xl border border-white/[0.08] surface-glass">
@@ -275,6 +276,47 @@ export default function App() {
               <p className="text-xs text-zinc-400 leading-relaxed">{text}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Who it is for */}
+      <section id="who" className="relative z-10 py-16 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto border-t border-white/[0.07]">
+        <div className="text-center max-w-3xl mx-auto mb-10">
+          <div className={pill}>Who it is for</div>
+          <h2 className="text-2xl sm:text-4xl font-bold text-white tracking-tight">Small teams with a UI and no E2E suite</h2>
+          <p className="mt-3 text-zinc-400 text-sm sm:text-base">
+            Most small teams ship a web app without anyone owning end-to-end tests. SynapseQA is a cheap
+            &ldquo;does the main journey still work, and does it look right?&rdquo; check you write in one sentence and run on a preview
+            deploy or in CI, next to your deterministic tests rather than instead of them.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+          {[
+            ['The problem', 'Hand-written selector tests are costly to write and break on every UI refactor, so small teams skip them and find regressions in production.'],
+            ['The approach', 'Describe a journey in plain English. Claude looks at real screenshots, acts, and reports PASS or FAIL with evidence. No selectors to maintain.'],
+            ['The limits', 'It is slower and less deterministic than scripted tests, and costs a model call per step. Good for smoke and visual checks, not a regression suite.']
+          ].map(([title, text]) => (
+            <div key={title} className="p-5 rounded-2xl border border-white/[0.08] surface-glass">
+              <h3 className="text-sm font-bold text-white mb-1.5">{title}</h3>
+              <p className="text-xs text-zinc-400 leading-relaxed">{text}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-8 rounded-2xl border border-white/10 surface-glass overflow-hidden text-left">
+          <div className="px-4 py-2 border-b border-white/[0.07] bg-black/40 text-[11px] font-mono text-zinc-400">
+            Result format &mdash; an illustration of the shape, not output from a real run
+          </div>
+          <pre className="p-4 bg-black/50 font-mono text-[11px] text-zinc-300 overflow-x-auto leading-relaxed">{`{
+  "target": "https://example.com",
+  "status": "FAIL",
+  "steps": [
+    {"index": 1, "tool": "screenshot", "error": null},
+    {"index": 2, "tool": "left_click", "input": {"coordinate": [640, 412]}}
+  ],
+  "report": "The Sign up button is partly covered by the cookie bar...\\nVERDICT: FAIL",
+  "usage": {"input_tokens": 0, "cache_read_input_tokens": 0}
+}`}</pre>
         </div>
       </section>
 
@@ -507,7 +549,7 @@ export default function App() {
         <div className="space-y-4">
           {[
             ['Is the walkthrough above a live run?', 'No. It is a scripted illustration. The real agent lives in agent/computer_use.py; clone the repo and run it with your own Anthropic key to see real traces.'],
-            ['Is this ready for production CI?', 'Not yet. The loop, CLI and exit codes work and are unit-tested offline against a fake client, but we have not benchmarked accuracy, cost or flakiness on real applications. Treat it as an early, open-source tool.'],
+            ['Is this ready for production CI?', 'Not yet. The loop, CLI and exit codes are unit-tested offline against a fake client that enforces the API’s tool_result format, but we have not yet validated a full run against a live model or benchmarked accuracy, cost or flakiness. Treat it as an early, open-source tool.'],
             ['What data leaves my machine?', 'Every step sends a screenshot of the page to the Anthropic API. Do not point it at pages showing sensitive data, run it in a throwaway VM or container, and follow Anthropic\u2019s computer use security guidance.']
           ].map(([q, a]) => (
             <div key={q} className="p-6 rounded-2xl border border-white/[0.08] surface-glass">
@@ -558,7 +600,8 @@ export default function App() {
 --model=${MODEL_ID}
 --dry-run             no model call, no browser
 
-exit code: 0 = PASS or DRY_RUN, 1 = FAIL or INCONCLUSIVE, 2 = error`}</pre>
+exit code: 0 = PASS or --dry-run, 1 = FAIL or INCONCLUSIVE,
+            2 = error (including a missing ANTHROPIC_API_KEY)`}</pre>
               </div>
               <div>
                 <h4 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider mb-2">Tests (no network needed)</h4>
