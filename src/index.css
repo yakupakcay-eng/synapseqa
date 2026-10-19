@@ -1,56 +1,33 @@
 @import "tailwindcss";
 
 @layer base {
-  :root {
-    --brand-cream: #FAF8F5;
-    --brand-charcoal: #09090b;
-    --brand-terracotta: #D97757;
-    --brand-amber: #F59E0B;
-  }
-
   html {
     scroll-behavior: smooth;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
   body {
-    background-color: #09090b;
-    color: #f4f4f5;
-    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #111418;
+    color: #e9ecef;
+    font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     overflow-x: hidden;
-    letter-spacing: -0.011em;
+  }
+
+  a:focus-visible, button:focus-visible, input:focus-visible {
+    outline: 2px solid #9db8ff;
+    outline-offset: 2px;
   }
 
   code, pre, .font-mono {
-    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     font-feature-settings: "liga" 0;
   }
 }
 
-/* Architectural Background Grid & Radial Mask */
-.bg-architectural-grid {
-  background-size: 36px 36px;
-  background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
-  mask-image: radial-gradient(ellipse 80% 60% at 50% 15%, #000 45%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 15%, #000 45%, transparent 100%);
-}
-
-/* Specular Inner-Border Glass Card (Linear / Raycast style) */
-.surface-glass {
-  background: linear-gradient(180deg, rgba(24, 24, 27, 0.72) 0%, rgba(12, 12, 14, 0.88) 100%);
-  box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
-    0 20px 40px -15px rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(16px);
-}
-
+/* Flat surfaces: a hairline border, no gradient, blur or inner highlight. */
+.surface-glass,
 .surface-elevated {
-  background: linear-gradient(180deg, rgba(30, 30, 35, 0.6) 0%, rgba(15, 15, 18, 0.85) 100%);
-  box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
-    0 25px 50px -12px rgba(0, 0, 0, 0.75);
+  background: #15181c;
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Custom scrollbar */
