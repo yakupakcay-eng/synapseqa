@@ -128,31 +128,36 @@ export default function App() {
     setIsModalOpen(false);
   };
 
-  const pill = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/15 bg-white/[0.06] text-zinc-200 text-[11px] font-mono font-semibold uppercase tracking-wider mb-3';
-  const primaryBtn = 'text-xs font-semibold bg-zinc-100 hover:bg-white text-zinc-900 px-4 py-2 rounded border border-transparent transition-all flex items-center gap-1.5 cursor-pointer';
+  const pill = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-500/20 bg-orange-500/10 text-orange-400 text-[11px] font-mono font-semibold uppercase tracking-wider mb-3';
+  const primaryBtn = 'text-xs font-semibold bg-gradient-to-b from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white px-4 py-2 rounded-lg shadow-lg shadow-orange-500/20 border border-orange-400/30 transition-all flex items-center gap-1.5 cursor-pointer';
 
   return (
-    <div className="min-h-screen bg-[#111418] text-zinc-100 selection:bg-white/[0.06] selection:text-zinc-200">
+    <div className="min-h-screen bg-[#09090b] text-zinc-100 selection:bg-orange-500/30 selection:text-orange-200">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute inset-0 bg-architectural-grid" />
+        <div className="absolute -top-48 left-1/2 -translate-x-1/2 w-[1000px] h-[580px] bg-gradient-to-b from-orange-500/14 via-amber-500/5 to-transparent blur-[130px] rounded-full glow-ambient" />
+      </div>
+
       {/* Banner */}
-      <div className="relative z-50 border-b border-white/[0.07] bg-zinc-950/80  px-4 py-2 text-center text-xs font-medium text-zinc-300 flex flex-wrap items-center justify-center gap-2">
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/[0.06] border border-white/15 text-[10px] text-zinc-200 font-semibold tracking-wider uppercase">
-          <Sparkles className="w-3 h-3 text-zinc-200" /> Early stage &bull; Open source
+      <div className="relative z-50 border-b border-white/[0.07] bg-zinc-950/80 backdrop-blur-md px-4 py-2 text-center text-xs font-medium text-zinc-300 flex flex-wrap items-center justify-center gap-2">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-orange-500/15 border border-orange-500/30 text-[10px] text-orange-300 font-semibold tracking-wider uppercase">
+          <Sparkles className="w-3 h-3 text-orange-400" /> Early stage &bull; Open source
         </span>
-        <span>Agent loop on the Claude Messages API using the <code className="font-mono text-zinc-200">{TOOLSET_ID}</code> computer use toolset.</span>
-        <a href={REPO_URL} target="_blank" rel="noreferrer" className="ml-1 text-zinc-200 hover:text-zinc-200 font-semibold underline underline-offset-4 transition-colors">
+        <span>Agent loop on the Claude Messages API using the <code className="font-mono text-orange-300">{TOOLSET_ID}</code> computer use toolset.</span>
+        <a href={REPO_URL} target="_blank" rel="noreferrer" className="ml-1 text-orange-400 hover:text-orange-300 font-semibold underline underline-offset-4 transition-colors">
           Read the code &rarr;
         </a>
       </div>
 
       {/* Header */}
-      <header className="relative z-40 border-b border-white/[0.07] bg-[#111418]/80  sticky top-0">
+      <header className="relative z-40 border-b border-white/[0.07] bg-[#09090b]/80 backdrop-blur-xl sticky top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded bg-zinc-100 flex items-center justify-center border border-white/20">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-b from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/25 border border-white/20">
               <Eye className="w-4 h-4 text-white" />
             </div>
             <span className="text-base font-bold tracking-tight text-white">
-              Synapse<span className="text-zinc-200">QA</span>
+              Synapse<span className="text-orange-500">QA</span>
             </span>
             <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-zinc-900 text-zinc-400 border border-white/10 font-mono">v1.4.0</span>
           </div>
@@ -163,8 +168,8 @@ export default function App() {
             <a href="#walkthrough" className="hover:text-white transition-colors">Walkthrough</a>
             <a href="#status" className="hover:text-white transition-colors">Status</a>
             <a href="#why-claude" className="hover:text-white transition-colors">Why Claude</a>
-            <button onClick={() => setIsDocsOpen(true)} className="hover:text-zinc-200 transition-colors flex items-center gap-1 cursor-pointer text-zinc-300">
-              <Code2 className="w-3.5 h-3.5 text-zinc-200" /> Docs
+            <button onClick={() => setIsDocsOpen(true)} className="hover:text-orange-400 transition-colors flex items-center gap-1 cursor-pointer text-zinc-300">
+              <Code2 className="w-3.5 h-3.5 text-orange-400" /> Docs
             </button>
           </nav>
 
@@ -176,16 +181,16 @@ export default function App() {
 
       {/* Hero */}
       <section className="relative z-10 pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
-        <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border border-white/10 bg-zinc-900/80  text-xs font-medium mb-8">
+        <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border border-white/10 bg-zinc-900/80 backdrop-blur-md text-xs font-medium mb-8">
           <span className="flex h-2 w-2 rounded-full bg-emerald-400" />
           <span className="text-zinc-400">Open source &middot; MIT</span>
           <span className="text-zinc-700">|</span>
-          <span className="text-zinc-200 font-semibold">Selector-free browser testing</span>
+          <span className="text-orange-400 font-semibold">Selector-free browser testing</span>
         </div>
 
         <h1 className="text-4xl sm:text-6xl lg:text-[64px] font-extrabold tracking-[-0.035em] text-white max-w-4xl mx-auto leading-[1.06]">
           QA that reads the screen{' '}
-          <span className="text-white">
+          <span className="bg-gradient-to-r from-white via-orange-200 to-orange-500 bg-clip-text text-transparent">
             the way a user does.
           </span>
         </h1>
@@ -196,23 +201,23 @@ export default function App() {
         </p>
 
         <div className="mt-9 flex flex-wrap items-center justify-center gap-3.5">
-          <a href={REPO_URL} target="_blank" rel="noreferrer" className="px-6 py-3 rounded bg-zinc-100 hover:bg-white text-zinc-900 font-semibold text-sm border border-transparent flex items-center gap-2 transition-all">
+          <a href={REPO_URL} target="_blank" rel="noreferrer" className="px-6 py-3 rounded-xl bg-gradient-to-b from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold text-sm shadow-xl shadow-orange-500/20 border border-orange-400/30 flex items-center gap-2 transition-all">
             View on GitHub <ArrowRight className="w-4 h-4" />
           </a>
-          <a href="#walkthrough" className="px-6 py-3 rounded border border-white/10 hover:border-white/20 bg-zinc-900/70 hover:bg-zinc-800/80 text-zinc-200 font-medium text-sm flex items-center gap-2 transition-all surface-glass">
-            <Play className="w-3.5 h-3.5 text-zinc-200 fill-zinc-200" /> See a walkthrough
+          <a href="#walkthrough" className="px-6 py-3 rounded-xl border border-white/10 hover:border-white/20 bg-zinc-900/70 hover:bg-zinc-800/80 text-zinc-200 font-medium text-sm flex items-center gap-2 transition-all surface-glass">
+            <Play className="w-3.5 h-3.5 text-orange-400 fill-orange-400" /> See a walkthrough
           </a>
         </div>
 
         {/* Quickstart */}
-        <div className="mt-12 max-w-3xl mx-auto rounded-md border border-white/10 surface-glass overflow-hidden text-left">
+        <div className="mt-12 max-w-3xl mx-auto rounded-2xl border border-white/10 surface-glass overflow-hidden text-left shadow-2xl">
           <div className="flex items-center justify-between px-4 py-2 border-b border-white/[0.07] bg-black/40 text-[11px]">
             <div className="flex items-center gap-1">
               {Object.entries(quickstarts).map(([key, q]) => (
                 <button
                   key={key}
                   onClick={() => setQuickstartTab(key)}
-                  className={`px-2.5 py-1 rounded-md font-mono transition-colors cursor-pointer ${quickstartTab === key ? 'bg-white/[0.06] text-zinc-200 border border-white/15 font-semibold' : 'text-zinc-400 hover:text-zinc-200'}`}
+                  className={`px-2.5 py-1 rounded-md font-mono transition-colors cursor-pointer ${quickstartTab === key ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30 font-semibold' : 'text-zinc-400 hover:text-zinc-200'}`}
                 >
                   {q.label}
                 </button>
@@ -221,10 +226,10 @@ export default function App() {
             <span className="text-zinc-500 font-mono text-[10px]">Node &gt;= 20 &bull; Python 3.10+ &bull; needs your own ANTHROPIC_API_KEY</span>
           </div>
           <div className="p-4 font-mono text-xs flex items-start justify-between gap-3 bg-black/50">
-            <pre className="text-zinc-200 whitespace-pre overflow-x-auto leading-relaxed"><span className="text-zinc-200 select-none">$ </span>{quickstarts[quickstartTab].code}</pre>
+            <pre className="text-zinc-200 whitespace-pre overflow-x-auto leading-relaxed"><span className="text-orange-500 select-none">$ </span>{quickstarts[quickstartTab].code}</pre>
             <button
               onClick={copyQuickstart}
-              className="p-2 rounded border border-white/10 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer text-[11px]"
+              className="p-2 rounded-lg border border-white/10 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer text-[11px]"
               title="Copy snippet"
             >
               {copiedCode ? (
@@ -244,7 +249,7 @@ export default function App() {
             ['Browser', 'Playwright Chromium'],
             ['License', 'MIT']
           ].map(([label, value]) => (
-            <div key={label} className="p-4 rounded-md border border-white/[0.08] surface-glass">
+            <div key={label} className="p-4 rounded-2xl border border-white/[0.08] surface-glass">
               <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">{label}</div>
               <div className="text-sm font-semibold text-white mt-1 font-mono break-all">{value}</div>
             </div>
@@ -260,12 +265,12 @@ export default function App() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[
-            ['01', 'Browser', 'Headless Chromium opens your page in a fixed viewport via Playwright.', 'text-zinc-400'],
-            ['02', 'Perceive', 'A screenshot goes to Claude with the computer use toolset. Claude answers with tool_use blocks.', 'text-zinc-400'],
-            ['03', 'Act', 'We execute each action (click, type, scroll) and return a tool_result. Claude asks for a screenshot when it needs to see the page.', 'text-zinc-400'],
-            ['04', 'Report', 'When Claude stops calling tools it writes a report ending in VERDICT: PASS or FAIL. The CLI exits 0 or 1.', 'text-zinc-400']
+            ['01', 'Browser', 'Headless Chromium opens your page in a fixed viewport via Playwright.', 'text-orange-400'],
+            ['02', 'Perceive', 'A screenshot goes to Claude with the computer use toolset. Claude answers with tool_use blocks.', 'text-orange-400'],
+            ['03', 'Act', 'We execute each action (click, type, scroll) and return a tool_result. Claude asks for a screenshot when it needs to see the page.', 'text-amber-400'],
+            ['04', 'Report', 'When Claude stops calling tools it writes a report ending in VERDICT: PASS or FAIL. The CLI exits 0 or 1.', 'text-emerald-400']
           ].map(([n, title, text, color]) => (
-            <div key={n} className="p-5 rounded-md border border-white/[0.08] surface-glass">
+            <div key={n} className="p-5 rounded-2xl border border-white/[0.08] surface-glass">
               <div className={`text-[11px] font-mono font-bold mb-2 ${color}`}>STEP {n}</div>
               <h3 className="text-sm font-bold text-white mb-1.5">{title}</h3>
               <p className="text-xs text-zinc-400 leading-relaxed">{text}</p>
@@ -291,14 +296,14 @@ export default function App() {
             ['The approach', 'Describe a journey in plain English. Claude looks at real screenshots, acts, and reports PASS or FAIL with evidence. No selectors to maintain.'],
             ['The limits', 'It is slower and less deterministic than scripted tests, and costs a model call per step. Good for smoke and visual checks, not a regression suite.']
           ].map(([title, text]) => (
-            <div key={title} className="p-5 rounded-md border border-white/[0.08] surface-glass">
+            <div key={title} className="p-5 rounded-2xl border border-white/[0.08] surface-glass">
               <h3 className="text-sm font-bold text-white mb-1.5">{title}</h3>
               <p className="text-xs text-zinc-400 leading-relaxed">{text}</p>
             </div>
           ))}
         </div>
 
-        <div className="mt-8 rounded-md border border-white/10 surface-glass overflow-hidden text-left">
+        <div className="mt-8 rounded-2xl border border-white/10 surface-glass overflow-hidden text-left">
           <div className="px-4 py-2 border-b border-white/[0.07] bg-black/40 text-[11px] font-mono text-zinc-400">
             Result format &mdash; an illustration of the shape, not output from a real run
           </div>
@@ -325,14 +330,14 @@ export default function App() {
           </p>
         </div>
 
-        <div className="rounded-md border border-white/10 surface-elevated overflow-hidden">
+        <div className="rounded-2xl border border-white/10 surface-elevated overflow-hidden">
           <div className="border-b border-zinc-800 bg-zinc-900/70 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-1 bg-zinc-950 p-1 rounded border border-zinc-800 text-xs">
+            <div className="flex items-center gap-1 bg-zinc-950 p-1 rounded-lg border border-zinc-800 text-xs">
               {[['checkout', 'Checkout flow'], ['layout', 'Layout defect (mobile)']].map(([key, label]) => (
                 <button
                   key={key}
                   onClick={() => pickScenario(key)}
-                  className={`px-3 py-1 rounded-md transition-all cursor-pointer ${selectedScenario === key ? 'bg-zinc-100 text-zinc-900 font-medium shadow' : 'text-zinc-400 hover:text-zinc-200'}`}
+                  className={`px-3 py-1 rounded-md transition-all cursor-pointer ${selectedScenario === key ? 'bg-orange-500 text-white font-medium shadow' : 'text-zinc-400 hover:text-zinc-200'}`}
                 >
                   {label}
                 </button>
@@ -341,7 +346,7 @@ export default function App() {
             <button
               onClick={runWalkthrough}
               disabled={isRunning}
-              className={`px-4 py-1.5 rounded text-xs font-semibold flex items-center gap-2 transition-all ${isRunning ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' : 'bg-zinc-100 hover:bg-white text-zinc-900 cursor-pointer'}`}
+              className={`px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all ${isRunning ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600 text-white shadow-md shadow-orange-500/20 cursor-pointer'}`}
             >
               {isRunning ? (<><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Playing…</>) : (<><Play className="w-3.5 h-3.5 fill-current" /> Play walkthrough</>)}
             </button>
@@ -350,7 +355,7 @@ export default function App() {
           <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[400px]">
             {/* Left: mock page */}
             <div className="lg:col-span-6 p-6 border-b lg:border-b-0 lg:border-r border-zinc-800 bg-zinc-950">
-              <div className="relative rounded border border-white/10 bg-[#121316] p-5 overflow-hidden h-full min-h-[300px]">
+              <div className="relative rounded-xl border border-white/10 bg-[#121316] p-5 overflow-hidden h-full min-h-[300px]">
                 <div className="flex items-center justify-between border-b border-white/[0.07] pb-3 mb-4 text-[11px] font-mono text-zinc-400">
                   <span>example-store.test</span>
                   <span>{selectedScenario === 'layout' ? '390x844' : '1440x900'}</span>
@@ -358,11 +363,11 @@ export default function App() {
 
                 {selectedScenario === 'checkout' ? (
                   <div className="space-y-3 text-xs">
-                    <div className="p-3 rounded bg-zinc-900/90 border border-white/[0.06] flex justify-between items-center">
+                    <div className="p-3 rounded-lg bg-zinc-900/90 border border-white/[0.06] flex justify-between items-center">
                       <span className="font-medium text-white">Team plan &times; 5 seats</span>
                       <span className="font-mono font-semibold text-zinc-200">$120.00</span>
                     </div>
-                    <div className="p-3 rounded bg-zinc-900/60 border border-white/15 space-y-2">
+                    <div className="p-3 rounded-lg bg-zinc-900/60 border border-orange-500/30 space-y-2">
                       <label className="text-[11px] text-zinc-400 block">Promo code</label>
                       <div className="flex gap-2">
                         <input readOnly value={stepIndex >= 2 ? 'SPRING25' : ''} placeholder="Enter code" className="w-full bg-zinc-950 border border-zinc-700 rounded px-2.5 py-1 text-xs font-mono text-zinc-200 focus:outline-none" />
@@ -376,8 +381,8 @@ export default function App() {
                   </div>
                 ) : (
                   <div className="space-y-3 text-xs">
-                    <div className="p-3 rounded bg-zinc-900/90 border border-white/[0.06] text-zinc-300">Order summary &mdash; 3 items</div>
-                    <div className={`p-2.5 rounded border text-[11px] ${stepIndex >= 2 ? 'bg-amber-950/30 border-amber-500/40 text-amber-200' : 'bg-zinc-900/40 border-white/[0.06] text-zinc-500'}`}>
+                    <div className="p-3 rounded-lg bg-zinc-900/90 border border-white/[0.06] text-zinc-300">Order summary &mdash; 3 items</div>
+                    <div className={`p-2.5 rounded-lg border text-[11px] ${stepIndex >= 2 ? 'bg-amber-950/30 border-amber-500/40 text-amber-200' : 'bg-zinc-900/40 border-white/[0.06] text-zinc-500'}`}>
                       <div className="font-semibold flex items-center gap-1">
                         <AlertTriangle className={`w-3.5 h-3.5 ${stepIndex >= 2 ? 'text-amber-400' : 'text-zinc-600'}`} />
                         {stepIndex >= 2 ? 'Primary button overlaps the fixed bottom bar' : 'Checking footer…'}
@@ -391,7 +396,7 @@ export default function App() {
                     className="absolute pointer-events-none transition-all duration-700 ease-out z-30"
                     style={{ top: `${30 + (stepIndex % 4) * 14}%`, left: `${25 + (stepIndex % 3) * 22}%` }}
                   >
-                    <MousePointer className="w-5 h-5 text-zinc-200 fill-zinc-200" />
+                    <MousePointer className="w-5 h-5 text-orange-400 fill-orange-500 drop-shadow-md" />
                   </div>
                 )}
               </div>
@@ -399,12 +404,12 @@ export default function App() {
 
             {/* Right: trace */}
             <div className="lg:col-span-6 p-6 bg-zinc-900/40">
-              <div className="flex items-center gap-1 bg-zinc-950 p-1 rounded border border-zinc-800 text-[11px] w-fit mb-4">
+              <div className="flex items-center gap-1 bg-zinc-950 p-1 rounded-lg border border-zinc-800 text-[11px] w-fit mb-4">
                 {[['stream', 'Step trace'], ['api', 'Request shape']].map(([key, label]) => (
                   <button
                     key={key}
                     onClick={() => setTelemetryTab(key)}
-                    className={`px-2.5 py-1 rounded transition-colors cursor-pointer ${telemetryTab === key ? 'bg-white/[0.06] text-zinc-200 font-semibold border border-white/15' : 'text-zinc-400 hover:text-zinc-200'}`}
+                    className={`px-2.5 py-1 rounded transition-colors cursor-pointer ${telemetryTab === key ? 'bg-orange-500/20 text-orange-300 font-semibold border border-orange-500/30' : 'text-zinc-400 hover:text-zinc-200'}`}
                   >
                     {label}
                   </button>
@@ -417,16 +422,16 @@ export default function App() {
                     const reached = stepIndex > idx || (!isRunning && stepIndex === steps.length - 1);
                     const current = isRunning && stepIndex === idx;
                     return (
-                      <div key={step.title} className={`p-2.5 rounded border text-xs transition-all ${current ? 'bg-white/[0.04] border-white/15' : reached ? 'bg-zinc-950/60 border-zinc-800/80' : 'bg-zinc-950/20 border-zinc-800/50 opacity-50'}`}>
+                      <div key={step.title} className={`p-2.5 rounded-lg border text-xs transition-all ${current ? 'bg-orange-950/20 border-orange-500/50' : reached ? 'bg-zinc-950/60 border-zinc-800/80' : 'bg-zinc-950/20 border-zinc-800/50 opacity-50'}`}>
                         <div className="flex items-center gap-2">
                           {reached || (current && step.done) ? (
                             step.warn ? <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" /> : <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                           ) : current ? (
-                            <RefreshCw className="w-4 h-4 text-zinc-200 animate-spin shrink-0" />
+                            <RefreshCw className="w-4 h-4 text-orange-400 animate-spin shrink-0" />
                           ) : (
                             <Circle className="w-4 h-4 text-zinc-700 shrink-0" />
                           )}
-                          <span className={`font-mono font-semibold ${current ? 'text-zinc-200' : reached ? 'text-zinc-200' : 'text-zinc-500'}`}>{step.title}</span>
+                          <span className={`font-mono font-semibold ${current ? 'text-orange-300' : reached ? 'text-zinc-200' : 'text-zinc-500'}`}>{step.title}</span>
                         </div>
                         <p className="mt-1 text-[11px] text-zinc-400 pl-6 leading-relaxed">{step.detail}</p>
                       </div>
@@ -434,8 +439,8 @@ export default function App() {
                   })}
                 </div>
               ) : (
-                <div className="p-3 rounded bg-black/70 border border-zinc-800 font-mono text-[11px] text-zinc-300 overflow-x-auto">
-                  <div className="text-zinc-200 font-semibold mb-1">{'// What agent/computer_use.py sends each turn'}</div>
+                <div className="p-3 rounded-lg bg-black/70 border border-zinc-800 font-mono text-[11px] text-zinc-300 overflow-x-auto">
+                  <div className="text-orange-400 font-semibold mb-1">{'// What agent/computer_use.py sends each turn'}</div>
                   <pre className="text-[10px] leading-relaxed">{`client.messages.create(
   model="${MODEL_ID}",
   tools=[{"type": "${TOOLSET_ID}"}],
@@ -462,7 +467,7 @@ export default function App() {
           <p className="mt-3 text-zinc-400 text-sm">We have not published cost, latency or accuracy figures because we have not measured them yet.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-6 rounded-md border border-emerald-500/20 surface-glass">
+          <div className="p-6 rounded-2xl border border-emerald-500/20 surface-glass">
             <div className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400 mb-4">In the repo today</div>
             <ul className="space-y-3 text-xs text-zinc-300">
               {works.map((item) => (
@@ -470,7 +475,7 @@ export default function App() {
               ))}
             </ul>
           </div>
-          <div className="p-6 rounded-md border border-white/[0.08] surface-glass">
+          <div className="p-6 rounded-2xl border border-white/[0.08] surface-glass">
             <div className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-400 mb-4">Next</div>
             <ul className="space-y-3 text-xs text-zinc-400">
               {planned.map((item) => (
@@ -493,8 +498,8 @@ export default function App() {
             [Terminal, 'Plain-English goals', 'The test is a sentence, not a script. That makes it cheap to write exploratory and smoke checks that would never justify a hand-coded suite.'],
             [Code2, 'Prompt caching', 'Every turn repeats the same system prompt, so it is marked cache_control: ephemeral. The agent reports real cache_read_input_tokens from the API response after each run.']
           ].map(([Icon, title, text]) => (
-            <div key={title} className="p-7 rounded-md border border-white/[0.08] surface-glass hover:border-white/15 transition-all">
-              <div className="w-11 h-11 rounded bg-white/[0.06] border border-white/15 flex items-center justify-center text-zinc-200 mb-5">
+            <div key={title} className="p-7 rounded-2xl border border-white/[0.08] surface-glass hover:border-orange-500/40 transition-all">
+              <div className="w-11 h-11 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-orange-400 mb-5">
                 <Icon className="w-5 h-5" />
               </div>
               <h3 className="text-base font-bold text-white mb-2">{title}</h3>
@@ -510,12 +515,12 @@ export default function App() {
           <h2 className="text-3xl font-bold text-white tracking-tight">Where it fits next to Playwright and Cypress</h2>
           <p className="mt-2 text-zinc-400 text-sm">A complement for exploratory and visual checks, not a replacement for a deterministic regression suite.</p>
         </div>
-        <div className="rounded-md border border-white/10 surface-glass overflow-x-auto">
+        <div className="rounded-2xl border border-white/10 surface-glass overflow-x-auto">
           <table className="w-full text-left text-xs sm:text-sm border-collapse">
             <thead>
               <tr className="border-b border-white/10 text-[11px] font-mono text-zinc-400 uppercase bg-black/40">
                 <th className="py-4 px-6 font-semibold">&nbsp;</th>
-                <th className="py-4 px-6 font-semibold text-zinc-200 bg-zinc-100/[0.07]">SynapseQA</th>
+                <th className="py-4 px-6 font-semibold text-orange-400 bg-orange-500/[0.07]">SynapseQA</th>
                 <th className="py-4 px-6 font-semibold">Scripted (Playwright / Cypress)</th>
               </tr>
             </thead>
@@ -529,7 +534,7 @@ export default function App() {
               ].map(([row, a, b]) => (
                 <tr key={row}>
                   <td className="py-4 px-6 font-medium text-white">{row}</td>
-                  <td className="py-4 px-6 text-zinc-200 bg-zinc-100/[0.04]">{a}</td>
+                  <td className="py-4 px-6 text-orange-300 bg-orange-500/[0.04]">{a}</td>
                   <td className="py-4 px-6 text-zinc-400">{b}</td>
                 </tr>
               ))}
@@ -547,9 +552,9 @@ export default function App() {
             ['Is this ready for production CI?', 'Not yet. The loop, CLI and exit codes are unit-tested offline against a fake client that enforces the API’s tool_result format, but we have not yet validated a full run against a live model or benchmarked accuracy, cost or flakiness. Treat it as an early, open-source tool.'],
             ['What data leaves my machine?', 'Every step sends a screenshot of the page to the Anthropic API. Do not point it at pages showing sensitive data, run it in a throwaway VM or container, and follow Anthropic\u2019s computer use security guidance.']
           ].map(([q, a]) => (
-            <div key={q} className="p-6 rounded-md border border-white/[0.08] surface-glass">
+            <div key={q} className="p-6 rounded-2xl border border-white/[0.08] surface-glass">
               <h4 className="text-sm font-semibold text-white flex items-center gap-2">
-                <HelpCircle className="w-4 h-4 text-zinc-200 shrink-0" /> {q}
+                <HelpCircle className="w-4 h-4 text-orange-400 shrink-0" /> {q}
               </h4>
               <p className="mt-2 text-xs sm:text-sm text-zinc-400 leading-relaxed">{a}</p>
             </div>
@@ -561,7 +566,7 @@ export default function App() {
       <footer className="border-t border-zinc-800 bg-black/60 py-12 px-4 sm:px-6 lg:px-8 text-xs text-zinc-500">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-6 h-6 rounded bg-zinc-100 flex items-center justify-center text-white">
+            <div className="w-6 h-6 rounded-lg bg-orange-500 flex items-center justify-center text-white">
               <Eye className="w-3.5 h-3.5" />
             </div>
             <span className="font-semibold text-zinc-300">SynapseQA</span>
@@ -578,10 +583,10 @@ export default function App() {
 
       {/* Docs modal */}
       {isDocsOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 ">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-md max-w-3xl w-full p-6 sm:p-8 relative max-h-[88vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[88vh] overflow-y-auto">
             <button onClick={() => setIsDocsOpen(false)} className="absolute top-4 right-4 text-zinc-400 hover:text-white text-xl font-bold cursor-pointer">&times;</button>
-            <div className="flex items-center gap-2 text-zinc-200 text-xs font-semibold uppercase tracking-wider mb-2">
+            <div className="flex items-center gap-2 text-orange-400 text-xs font-semibold uppercase tracking-wider mb-2">
               <Code2 className="w-4 h-4" /> Documentation
             </div>
             <h3 className="text-2xl font-bold text-white mb-4">Using SynapseQA</h3>
@@ -589,7 +594,7 @@ export default function App() {
             <div className="space-y-6 text-left">
               <div>
                 <h4 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider mb-2">CLI flags</h4>
-                <pre className="p-4 rounded bg-black/80 border border-zinc-800 font-mono text-[11px] text-zinc-300 overflow-x-auto leading-relaxed">{`--target=<url>        page to test (required)
+                <pre className="p-4 rounded-xl bg-black/80 border border-zinc-800 font-mono text-[11px] text-zinc-300 overflow-x-auto leading-relaxed">{`--target=<url>        page to test (required)
 --goal="<sentence>"   what the agent should try
 --max-steps=12        cap on model turns
 --model=${MODEL_ID}
@@ -600,17 +605,17 @@ exit code: 0 = PASS or --dry-run, 1 = FAIL or INCONCLUSIVE,
               </div>
               <div>
                 <h4 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider mb-2">Tests (no network needed)</h4>
-                <pre className="p-4 rounded bg-black/80 border border-zinc-800 font-mono text-[11px] text-zinc-300 overflow-x-auto leading-relaxed">{`cd agent && python -m unittest -v`}</pre>
+                <pre className="p-4 rounded-xl bg-black/80 border border-zinc-800 font-mono text-[11px] text-zinc-300 overflow-x-auto leading-relaxed">{`cd agent && python -m unittest -v`}</pre>
               </div>
               <p className="text-[11px] text-zinc-400 leading-relaxed">
-                The agent returns <code className="font-mono text-zinc-200">status</code>, the step list, the model&apos;s written report and the token usage
-                reported by the API (including <code className="font-mono text-zinc-200">cache_read_input_tokens</code>).
+                The agent returns <code className="font-mono text-orange-300">status</code>, the step list, the model&apos;s written report and the token usage
+                reported by the API (including <code className="font-mono text-orange-300">cache_read_input_tokens</code>).
               </p>
             </div>
 
             <div className="mt-6 pt-4 border-t border-zinc-800 flex justify-between items-center">
-              <a href={REPO_URL} target="_blank" rel="noreferrer" className="text-xs text-zinc-200 hover:underline font-medium">View source on GitHub &rarr;</a>
-              <button onClick={() => setIsDocsOpen(false)} className="px-5 py-2 rounded bg-zinc-100 hover:bg-white text-zinc-900 text-xs font-semibold cursor-pointer">Done</button>
+              <a href={REPO_URL} target="_blank" rel="noreferrer" className="text-xs text-orange-400 hover:underline font-medium">View source on GitHub &rarr;</a>
+              <button onClick={() => setIsDocsOpen(false)} className="px-5 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold cursor-pointer">Done</button>
             </div>
           </div>
         </div>
@@ -618,10 +623,10 @@ exit code: 0 = PASS or --dry-run, 1 = FAIL or INCONCLUSIVE,
 
       {/* Early access modal: opens the visitor's email client; nothing is stored by the site */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 ">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-md max-w-md w-full p-6 relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
             <button onClick={() => setIsModalOpen(false)} className="absolute top-4 right-4 text-zinc-400 hover:text-white text-lg font-bold cursor-pointer">&times;</button>
-            <div className="w-10 h-10 rounded bg-white/[0.06] border border-white/15 flex items-center justify-center text-zinc-200 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-400 mb-4">
               <Sparkles className="w-5 h-5" />
             </div>
             <h3 className="text-xl font-bold text-white mb-1">Request early access</h3>
@@ -631,13 +636,13 @@ exit code: 0 = PASS or --dry-run, 1 = FAIL or INCONCLUSIVE,
             <form onSubmit={submitEarlyAccess} className="space-y-4">
               <div>
                 <label className="text-xs font-medium text-zinc-300 block mb-1">Your email</label>
-                <input type="email" required placeholder="you@yourcompany.com" value={emailInput} onChange={(e) => setEmailInput(e.target.value)} className="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-400" />
+                <input type="email" required placeholder="you@yourcompany.com" value={emailInput} onChange={(e) => setEmailInput(e.target.value)} className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-orange-500" />
               </div>
               <div>
                 <label className="text-xs font-medium text-zinc-300 block mb-1">Site or repo to test (optional)</label>
-                <input type="text" placeholder="https://github.com/your-org/webapp" value={projectInput} onChange={(e) => setProjectInput(e.target.value)} className="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-400" />
+                <input type="text" placeholder="https://github.com/your-org/webapp" value={projectInput} onChange={(e) => setProjectInput(e.target.value)} className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-orange-500" />
               </div>
-              <button type="submit" className="w-full py-2.5 rounded bg-zinc-100 hover:bg-white text-zinc-900 font-semibold text-sm transition-all cursor-pointer">
+              <button type="submit" className="w-full py-2.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm shadow-lg shadow-orange-500/25 transition-all cursor-pointer">
                 Compose email
               </button>
             </form>
