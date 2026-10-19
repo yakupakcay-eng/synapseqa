@@ -27,8 +27,8 @@ Playwright (headless Chromium)  <->  Claude Messages API
 3. We run each action in the browser and reply with a `tool_result` (a short `OK`, or a screenshot when Claude asks for one).
 4. When Claude stops calling tools it writes a report ending in `VERDICT: PASS|FAIL`.
 
-The system prompt is identical on every turn, so it carries `cache_control: {"type": "ephemeral"}`. Token usage,
-including `cache_read_input_tokens`, is read from the API response and returned with each run. Code: [`agent/computer_use.py`](agent/computer_use.py).
+The system prompt carries `cache_control: {"type": "ephemeral"}`. Token usage, including cache creation and read counts,
+is read from the API response and returned with each run. Code: [`agent/computer_use.py`](agent/computer_use.py).
 
 ## What a result looks like
 
@@ -52,6 +52,8 @@ VERDICT: FAIL",
 ```
 
 ## Run it
+
+Install from source: clone the repo and run from its root.
 
 ```bash
 git clone https://github.com/yakupakcay-eng/synapseqa && cd synapseqa

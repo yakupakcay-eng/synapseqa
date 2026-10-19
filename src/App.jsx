@@ -55,7 +55,8 @@ node cli/bin/synapseqa.js --target=https://example.com --goal="Smoke-test the si
   },
   python: {
     label: 'Python',
-    code: `import asyncio
+    code: `# run from the repo root after cloning
+import asyncio
 from agent.computer_use import SynapseAgent
 
 result = asyncio.run(
@@ -122,8 +123,8 @@ export default function App() {
 
   const submitEarlyAccess = (e) => {
     e.preventDefault();
-    const subject = encodeURIComponent('SynapseQA early access');
-    const body = encodeURIComponent(`Email: ${emailInput}\nProject / repo: ${projectInput || '-'}\n\nWhat I would like to test:\n`);
+    const subject = encodeURIComponent('SynapseQA');
+    const body = encodeURIComponent(`Email: ${emailInput}\nProject / repo: ${projectInput || '-'}\n\nMessage:\n`);
     window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
     setIsModalOpen(false);
   };
@@ -174,7 +175,7 @@ export default function App() {
           </nav>
 
           <button onClick={() => setIsModalOpen(true)} className={primaryBtn}>
-            Request early access <ArrowRight className="w-3.5 h-3.5" />
+            Get in touch <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </header>
@@ -223,7 +224,7 @@ export default function App() {
                 </button>
               ))}
             </div>
-            <span className="text-zinc-500 font-mono text-[10px]">Node &gt;= 20 &bull; Python 3.10+ &bull; needs your own ANTHROPIC_API_KEY</span>
+            <span className="text-zinc-500 font-mono text-[10px]">Node &gt;= 20 &bull; Python 3.10+ &bull; run from a clone of the repo &bull; needs your own ANTHROPIC_API_KEY</span>
           </div>
           <div className="p-4 font-mono text-xs flex items-start justify-between gap-3 bg-black/50">
             <pre className="text-zinc-200 whitespace-pre overflow-x-auto leading-relaxed"><span className="text-orange-500 select-none">$ </span>{quickstarts[quickstartTab].code}</pre>
@@ -452,7 +453,7 @@ export default function App() {
               )}
 
               <div className="mt-5 pt-3 border-t border-zinc-800 text-[11px] text-zinc-400 flex items-center gap-1.5">
-                <GitPullRequest className="w-3.5 h-3.5 text-zinc-300" /> Illustration only &mdash; no tokens, latency or cache numbers are claimed here.
+                <GitPullRequest className="w-3.5 h-3.5 text-zinc-300" /> Scripted illustration of a run.
               </div>
             </div>
           </div>
@@ -496,7 +497,7 @@ export default function App() {
           {[
             [Eye, 'Computer use toolset', `One {"type": "${TOOLSET_ID}"} entry gives Claude screenshot, click, type and scroll tools. The agent decides from pixels, so a renamed CSS class does not break a test.`],
             [Terminal, 'Plain-English goals', 'The test is a sentence, not a script. That makes it cheap to write exploratory and smoke checks that would never justify a hand-coded suite.'],
-            [Code2, 'Prompt caching', 'Every turn repeats the same system prompt, so it is marked cache_control: ephemeral. The agent reports real cache_read_input_tokens from the API response after each run.']
+            [Code2, 'Usage reporting', 'Each run returns the token usage reported by the API, including cache creation and cache read counts, so you can see what a run costs. The system prompt is marked cacheable with cache_control: ephemeral.']
           ].map(([Icon, title, text]) => (
             <div key={title} className="p-7 rounded-2xl border border-white/[0.08] surface-glass hover:border-orange-500/40 transition-all">
               <div className="w-11 h-11 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-orange-400 mb-5">
@@ -629,9 +630,9 @@ exit code: 0 = PASS or --dry-run, 1 = FAIL or INCONCLUSIVE,
             <div className="w-10 h-10 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-400 mb-4">
               <Sparkles className="w-5 h-5" />
             </div>
-            <h3 className="text-xl font-bold text-white mb-1">Request early access</h3>
+            <h3 className="text-xl font-bold text-white mb-1">Get in touch</h3>
             <p className="text-xs text-zinc-400 mb-5">
-              There is no hosted product yet. Tell us what you would like to test and we will reach out. This opens your email client addressed to {CONTACT_EMAIL}.
+              Feedback, a bug report, or a site you would like to try it on? Send a note to {CONTACT_EMAIL}. This opens your email client; if nothing happens, write to the address directly.
             </p>
             <form onSubmit={submitEarlyAccess} className="space-y-4">
               <div>
