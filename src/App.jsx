@@ -14,7 +14,6 @@ import {
   Check,
   RefreshCw,
   MousePointer,
-  HelpCircle,
   Copy,
   Circle
 } from 'lucide-react';
@@ -541,25 +540,6 @@ export default function App() {
               ))}
             </tbody>
           </table>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto border-t border-white/[0.07]">
-        <h2 className="text-3xl font-bold text-white text-center mb-12 tracking-tight">FAQ</h2>
-        <div className="space-y-4">
-          {[
-            ['Is the walkthrough above a live run?', 'No. It is a scripted illustration. The real agent lives in agent/computer_use.py; clone the repo and run it with your own Anthropic key to see real traces.'],
-            ['Can I use it in CI?', 'It is built for that: the CLI returns CI-friendly exit codes and the loop is covered by offline tests. It is an early-stage open-source tool, so start with a staging or preview environment. Accuracy, cost and latency benchmarks are on the roadmap.'],
-            ['What data leaves my machine?', 'Every step sends a screenshot of the page to the Anthropic API. Do not point it at pages showing sensitive data, run it in a throwaway VM or container, and follow Anthropic\u2019s computer use security guidance.']
-          ].map(([q, a]) => (
-            <div key={q} className="p-6 rounded-2xl border border-white/[0.08] surface-glass">
-              <h4 className="text-sm font-semibold text-white flex items-center gap-2">
-                <HelpCircle className="w-4 h-4 text-orange-400 shrink-0" /> {q}
-              </h4>
-              <p className="mt-2 text-xs sm:text-sm text-zinc-400 leading-relaxed">{a}</p>
-            </div>
-          ))}
         </div>
       </section>
 
