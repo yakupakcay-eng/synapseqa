@@ -12,18 +12,23 @@
     "build": "vite build",
     "lint": "oxlint",
     "test:cli": "node cli/bin/synapseqa.js --version",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "og": "remotion still src/remotion/index.jsx OgImage public/og.png --frame=-1"
   },
   "dependencies": {
+    "@remotion/player": "^4.0.538",
     "@tailwindcss/vite": "^4.3.3",
     "clsx": "^2.1.1",
     "lucide-react": "^1.55.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "remotion": "^4.0.538",
     "tailwind-merge": "^3.7.0",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
+    "@remotion/cli": "^4.0.538",
+    "@remotion/google-fonts": "^4.0.538",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
