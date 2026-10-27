@@ -1057,7 +1057,7 @@ export default function App() {
         <section aria-labelledby="comparison" className="border-t border-line bg-panel">
           <div className={`${container} py-24`}>
             <SectionHeading id="comparison" title="Where it fits next to Playwright and Cypress">
-              A complement for exploratory and visual checks, not a replacement for a deterministic regression suite.
+              Use both: SynapseQA for the checks nobody writes, scripted tests for the ones that must be exact.
             </SectionHeading>
             <div className="rounded-2xl border border-line overflow-x-auto">
               <table className="w-full text-left text-[13px] sm:text-sm border-collapse">
@@ -1070,11 +1070,12 @@ export default function App() {
                 </thead>
                 <tbody className="divide-y divide-line text-ink-2">
                   {[
-                    ['Authoring', 'A sentence of English', 'Code with selectors'],
-                    ['Survives UI refactors', 'Usually, since it works from what is visible', 'Breaks when selectors change'],
-                    ['Visual defects (overlap, clipping)', 'Can notice them', 'Only if you wrote an assertion'],
-                    ['Speed and cost per run', 'Slower; each step is a model call', 'Fast and effectively free'],
-                    ['Determinism', 'Not guaranteed; the model decides', 'Fully deterministic']
+                    ['Writing a test', 'One sentence', 'Code and a selector for every step'],
+                    ['After a redesign', 'The same sentence still runs', 'Selectors need updating'],
+                    ['Visual bugs (overlap, clipping)', 'Reported from the screenshot', 'Missed unless you wrote an assertion for it'],
+                    ['Who can write one', 'Anyone who can describe the journey', 'An engineer who knows the framework'],
+                    ['Each run', 'A model call per step, so slower', 'Fast and repeatable'],
+                    ['Best for', 'Smoke and visual checks on every deploy', 'Exact, repeatable regression checks']
                   ].map(([row, a, b]) => (
                     <tr key={row} className="hover:bg-canvas/60 transition-colors">
                       <th scope="row" className="py-4 px-6 font-medium text-ink">{row}</th>
